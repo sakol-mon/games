@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Wise - เกมประหยัดน้ำ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --water-blue: #0ea5e9;
+            --water-dark: #0284c7;
+            --water-light: #7dd3fc;
+            --danger-red: #ef4444;
+            --success-green: #10b981;
+            --warning-yellow: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #10b981 100%);
+            --text-dark: #1e293b;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Water droplet animation background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255,255,255,0.06) 0%, transparent 50%);
+            animation: floatBubbles 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes floatBubbles {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Screen containers */
+        .screen {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Intro Screen */
+        .intro-content {
+            text-align: center;
+        }
+
+        .game-title {
+            font-family: 'Kanit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .intro-icon {
+            font-size: 5rem;
+            margin: 20px 0;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .intro-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-dark);
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid var(--water-blue);
+        }
+
+        .intro-warning {
+            font-weight: 600;
+            color: var(--danger-red);
+            font-size: 1.3rem;
+            margin: 20px 0;
+        }
+
+        .btn {
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 18px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: var(--bg-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        /* Game Screen */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 15px;
+        }
+
+        .water-meter {
+            flex: 1;
+            margin: 0 20px;
+        }
+
+        .water-label {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .water-bar-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .water-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #0ea5e9, #06b6d4);
+            border-radius: 15px;
+            transition: width 0.5s ease, background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .water-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .water-bar.low {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
+
+        .timer {
+            font-family: 'Kanit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--water-dark);
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .timer.warning {
+            color: var(--danger-red);
+            animation: timerPulse 1s infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .mission-container {
+            margin: 30px 0;
+        }
+
+        .mission-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .mission-number {
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.2rem;
+            color: var(--water-dark);
+            font-weight: 600;
+        }
+
+        .mission-title {
+            font-family: 'Kanit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 10px 0;
+        }
+
+        .mission-timer {
+            font-size: 1.1rem;
+            color: var(--danger-red);
+            margin-top: 10px;
+        }
+
+        .choices-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .choice-btn {
+            font-family: 'Sarabun', sans-serif;
+            padding: 30px 20px;
+            background: white;
+            border: 3px solid var(--water-light);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--water-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .choice-btn:hover::before {
+            left: 100%;
+        }
+
+        .choice-label {
+            display: block;
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .choice-description {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .bonus-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .bonus-notification.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Result Screen */
+        .result-content {
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 6rem;
+            margin: 20px 0;
+            animation: resultPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes resultPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .result-rank {
+            font-family: 'Kanit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .result-water {
+            font-family: 'Kanit', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+
+        .result-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-dark);
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 15px;
+        }
+
+        .result-status {
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .result-stats {
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            font-size: 1.2rem;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .stat-value {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 700;
+            color: var(--water-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            .screen {
+                padding: 25px;
+            }
+
+            .game-title {
+                font-size: 2.5rem;
+            }
+
+            .intro-icon {
+                font-size: 4rem;
+            }
+
+            .intro-text {
+                font-size: 1rem;
+            }
+
+            .choices-container {
+                grid-template-columns: 1fr;
+            }
+
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .water-meter {
+                width: 100%;
+                margin: 0;
+            }
+
+            .mission-title {
+                font-size: 1.5rem;
+            }
+
+            .choice-label {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Intro Screen -->
+        <div id="introScreen" class="screen active">
+            <div class="intro-content">
+                <h1 class="game-title">💧 Water Wise 💧</h1>
+                <div class="intro-icon">🚰</div>
+                <div class="intro-text">
+                    <p><strong>กริ๊งงงงง!</strong> คุณเพิ่งได้รับข้อความแจ้งเตือนด่วนจากนิติบุคคล:</p>
+                    <p style="margin-top: 15px;">"<em>ท่อประปาหลักแตก! ทั้งหมู่บ้านเหลือน้ำสำรองในแท็งก์รวมแค่ 100% สุดท้ายสำหรับคุณ</em>"</p>
+                    <p style="margin-top: 15px;">น้ำจำนวนนี้ต้องใช้ให้พอกับ <strong>10 ภารกิจหลัก</strong> ตั้งแต่ตื่นนอนจนถึงเข้านอน</p>
+                </div>
+                <div class="intro-warning">
+                    ⏰ คุณมีเวลาแค่ 60 วินาที ในการจัดการชีวิตตัวเองให้รอด!
+                </div>
+                <div class="intro-text" style="background: rgba(239, 68, 68, 0.1); border-left-color: var(--danger-red);">
+                    <p><strong>⚠️ คำเตือน:</strong> หากคุณใช้น้ำเพลินจนน้ำหมดถังก่อนจบวัน คุณจะไม่มีน้ำแม้แต่จะล้างมือในมื้อเย็น!</p>
+                    <p style="margin-top: 10px;">รถน้ำจะมาเติมอีกทีพรุ่งนี้... ตัดสินใจให้ดีทุกก๊อกที่เปิด!</p>
+                </div>
+                <button class="btn btn-primary" onclick="game.startGame()">🚰 เปิดก๊อกเริ่มวันใหม่</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <div class="timer" id="timer">60</div>
+                <div class="water-meter">
+                    <div class="water-label">
+                        <span>💧 น้ำคงเหลือ</span>
+                        <span id="waterPercent" style="font-size: 1.3rem;">100%</span>
+                    </div>
+                    <div class="water-bar-container">
+                        <div class="water-bar" id="waterBar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mission-container">
+                <div class="mission-info">
+                    <div class="mission-number" id="missionNumber">ภารกิจที่ 1 / 10</div>
+                    <h2 class="mission-title" id="missionTitle"></h2>
+                    <div class="mission-timer" id="missionTimer">⏱️ เหลือเวลา: 10 วินาที</div>
+                </div>
+
+                <div class="choices-container" id="choicesContainer">
+                    <!-- Choices will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="resultScreen" class="screen">
+            <div class="result-content">
+                <h2 class="game-title">ผลการเล่น</h2>
+                <div class="result-icon" id="resultIcon"></div>
+                <h3 class="result-rank" id="resultRank"></h3>
+                <div class="result-water" id="resultWater"></div>
+                <div class="result-description" id="resultDescription"></div>
+                <div class="result-status" id="resultStatus"></div>
+                
+                <div class="result-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">⏱️ เวลาที่ใช้</span>
+                        <span class="stat-value" id="statTime"></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">♻️ ครั้งที่เลือกประหยัด</span>
+                        <span class="stat-value" id="statEco"></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">💰 โบนัสที่ได้รับ</span>
+                        <span class="stat-value" id="statBonus"></span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="game.resetGame()">🔄 เล่นอีกครั้ง</button>
+            </div>
+        </div>
+
+        <!-- Bonus Notification -->
+        <div class="bonus-notification" id="bonusNotification">
+            ⭐ โบนัส! +2% น้ำคืน
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

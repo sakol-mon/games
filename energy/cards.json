@@ -1,0 +1,82 @@
+{
+  "cards": [
+    {
+      "id": 1,
+      "type": "text",
+      "content": "พลังงานแสงอาทิตย์",
+      "englishName": "Solar Energy",
+      "pairId": 1
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "image": "images/1.png",
+      "pairId": 1
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "content": "พลังงานลม",
+      "englishName": "Wind Energy",
+      "pairId": 2
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "image": "images/2.png",
+      "pairId": 2
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "content": "พลังงานน้ำ",
+      "englishName": "Hydropower",
+      "pairId": 3
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "image": "images/3.png",
+      "pairId": 3
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "content": "พลังงานชีวมวล",
+      "englishName": "Biomass",
+      "pairId": 4
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "image": "images/4.png",
+      "pairId": 4
+    },
+    {
+      "id": 9,
+      "type": "text",
+      "content": "พลังงานความร้อนใต้พิภพ",
+      "englishName": "Geothermal Energy",
+      "pairId": 5
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "image": "images/5.png",
+      "pairId": 5
+    },
+    {
+      "id": 11,
+      "type": "text",
+      "content": "พลังงานไฮโดรเจน",
+      "englishName": "Hydrogen Energy",
+      "pairId": 6
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "image": "images/6.png",
+      "pairId": 6
+    }
+  ]
+}

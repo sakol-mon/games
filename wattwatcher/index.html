@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Watt Watcher - เกมบริหารพลังงาน</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --low-power: #10b981;
+            --medium-power: #f59e0b;
+            --high-power: #ef4444;
+            --active-blue: #1e40af;
+            --happiness-good: #22c55e;
+            --happiness-warning: #f59e0b;
+            --happiness-danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            padding: clamp(8px, 1.5vh, 15px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: clamp(8px, 1.5vh, 15px);
+            animation: slideDown 0.8s ease-out;
+            flex-shrink: 0;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Kanit', sans-serif;
+            font-size: clamp(1.5rem, 4vh, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: clamp(4px, 0.5vh, 8px);
+            text-shadow: 2px 2px 4px rgba(30, 64, 175, 0.1);
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: clamp(0.8rem, 1.5vh, 1rem);
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+            gap: clamp(6px, 1vh, 12px);
+            margin-bottom: clamp(8px, 1.5vh, 15px);
+            animation: fadeIn 1s ease-out 0.3s backwards;
+            flex-shrink: 0;
+        }
+
+        .status-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: clamp(8px, 1vh, 12px);
+            padding: clamp(8px, 1.5vh, 14px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .status-label {
+            font-size: clamp(0.7rem, 1.2vh, 0.85rem);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: clamp(4px, 0.8vh, 6px);
+        }
+
+        .status-value {
+            font-family: 'Kanit', sans-serif;
+            font-size: clamp(1.2rem, 3vh, 2rem);
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .load-meter {
+            margin-top: clamp(6px, 1vh, 10px);
+            height: clamp(8px, 1.2vh, 10px);
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .load-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--low-power) 0%, var(--medium-power) 70%, var(--high-power) 100%);
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .happiness-bar {
+            margin-top: clamp(6px, 1vh, 10px);
+            height: clamp(8px, 1.2vh, 10px);
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .happiness-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .timer-display {
+            font-size: clamp(1.5rem, 3.5vh, 2.5rem);
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .rooms-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+            gap: clamp(8px, 1.5vh, 12px);
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+        }
+
+        .rooms-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .rooms-container::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.5);
+            border-radius: 3px;
+        }
+
+        .rooms-container::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 3px;
+        }
+
+        .rooms-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.7);
+        }
+
+        .room-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: clamp(8px, 1vh, 12px);
+            padding: clamp(10px, 1.5vh, 14px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: all 0.3s ease;
+            height: fit-content;
+        }
+
+        .room-card.task-target {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #ffffff 0%, #dbeafe 100%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            }
+        }
+
+        .room-header {
+            font-family: 'Kanit', sans-serif;
+            font-size: clamp(1rem, 2vh, 1.3rem);
+            font-weight: 700;
+            margin-bottom: clamp(8px, 1.2vh, 12px);
+            color: var(--text-primary);
+        }
+
+        .appliance-grid {
+            display: grid;
+            gap: clamp(6px, 1vh, 8px);
+        }
+
+        .appliance-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(8px, 1.2vh, 10px) clamp(10px, 1.5vh, 12px);
+            border: 2px solid var(--border-color);
+            border-radius: clamp(6px, 1vh, 10px);
+            background: var(--bg-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Sarabun', sans-serif;
+            font-size: clamp(0.8rem, 1.4vh, 0.95rem);
+            font-weight: 600;
+            min-height: 40px;
+        }
+
+        .appliance-btn:active {
+            transform: scale(0.98);
+        }
+
+        .appliance-btn.active {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            border-color: #1e40af;
+        }
+
+        .appliance-btn.task-required {
+            border-color: #3b82f6;
+            border-width: 3px;
+            animation: glow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+
+        .appliance-btn.always-on {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border-color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .appliance-power {
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: clamp(0.7rem, 1.2vh, 0.85rem);
+            white-space: nowrap;
+        }
+
+        .power-low {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .power-medium {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .power-high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .task-modal {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            border: 3px solid #3b82f6;
+            max-width: min(550px, 90vw);
+        }
+
+        .task-popup-icon {
+            font-size: clamp(3rem, 8vw, 5rem);
+            margin-bottom: 15px;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .task-popup-description {
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .task-popup-details {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            padding: clamp(15px, 3vw, 20px);
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .task-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .task-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-detail-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+        }
+
+        .task-detail-value {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+        }
+
+        .btn-task-start {
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            padding: clamp(14px, 3vw, 18px) clamp(35px, 7vw, 50px);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: clamp(16px, 3vw, 24px);
+            padding: clamp(25px, 5vw, 40px);
+            max-width: min(500px, 90vw);
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+            animation: scaleIn 0.4s ease-out;
+            margin: 20px;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal h2 {
+            font-family: 'Kanit', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .modal p {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: clamp(12px, 2.5vw, 16px) clamp(30px, 6vw, 40px);
+            border: none;
+            border-radius: clamp(8px, 1.5vw, 12px);
+            font-family: 'Kanit', sans-serif;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 44px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-hold {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hold-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            width: 0;
+            transition: width 0.1s linear;
+        }
+
+        .blackout-modal {
+            background: #1e1b4b;
+            color: white;
+        }
+
+        .blackout-modal h2 {
+            color: #fbbf24;
+        }
+
+        .strike-display {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: clamp(6px, 1vh, 8px);
+        }
+
+        .strike-dot {
+            width: clamp(12px, 1.5vh, 14px);
+            height: clamp(12px, 1.5vh, 14px);
+            border-radius: 50%;
+            background: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .strike-dot.active {
+            background: var(--high-power);
+            animation: strikeAnim 0.5s ease-out;
+        }
+
+        @keyframes strikeAnim {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
+        @media (max-width: 768px) {
+            .rooms-container {
+                grid-template-columns: 1fr;
+            }
+
+            .status-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .appliance-btn:hover {
+                transform: none;
+            }
+
+            .status-card:hover {
+                transform: none;
+            }
+
+            .modal {
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 6px;
+            }
+
+            .status-card {
+                padding: 8px;
+            }
+
+            .room-card {
+                padding: 10px;
+            }
+
+            .appliance-btn {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+                min-height: 38px;
+            }
+
+            .appliance-power {
+                font-size: 0.7rem;
+                padding: 2px 6px;
+            }
+
+            .status-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .rooms-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .status-bar {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (max-height: 700px) {
+            h1 {
+                font-size: clamp(1.3rem, 3.5vh, 2rem);
+                margin-bottom: 4px;
+            }
+
+            .subtitle {
+                font-size: clamp(0.75rem, 1.3vh, 0.9rem);
+            }
+
+            .status-card {
+                padding: 8px;
+            }
+
+            .status-label {
+                font-size: 0.7rem;
+                margin-bottom: 4px;
+            }
+
+            .status-value {
+                font-size: clamp(1rem, 2.5vh, 1.5rem);
+            }
+
+            .room-card {
+                padding: 10px;
+            }
+
+            .room-header {
+                font-size: clamp(0.9rem, 1.8vh, 1.1rem);
+                margin-bottom: 8px;
+            }
+
+            .appliance-btn {
+                padding: 7px 10px;
+                font-size: 0.8rem;
+                min-height: 36px;
+            }
+        }
+
+        @media (hover: hover) {
+            .appliance-btn:hover {
+                transform: translateX(4px);
+                border-color: #94a3b8;
+            }
+
+            .status-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>⚡ WATT WATCHER ⚡</h1>
+            <p class="subtitle">บริหารพลังงาน รักษาความสุข</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-card">
+                <div class="status-label">⚡ กำลังไฟรวม</div>
+                <div class="status-value" id="current-load">0.0 kW</div>
+                <div class="load-meter">
+                    <div class="load-fill" id="load-fill"></div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-label">😊 ความสุข</div>
+                <div class="status-value" id="happiness-value">100%</div>
+                <div class="happiness-bar">
+                    <div class="happiness-fill" id="happiness-fill"></div>
+                </div>
+                <div class="strike-display" id="happiness-strikes">
+                    <div class="strike-dot"></div>
+                    <div class="strike-dot"></div>
+                    <div class="strike-dot"></div>
+                </div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-label">⏱️ เวลาที่เหลือ</div>
+                <div class="status-value timer-display" id="timer">90</div>
+            </div>
+
+            <div class="status-card" id="task-timer-card" style="display: none;">
+                <div class="status-label">📋 ภารกิจ</div>
+                <div class="status-value" id="task-countdown" style="color: #ef4444;">5</div>
+            </div>
+
+            <div class="status-card">
+                <div class="status-label">⚠️ ไฟดับ</div>
+                <div class="status-value" id="blackout-count">0 / 3</div>
+                <div class="strike-display" id="blackout-strikes">
+                    <div class="strike-dot"></div>
+                    <div class="strike-dot"></div>
+                    <div class="strike-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rooms-container" id="rooms-container">
+            <!-- Rooms will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Task Popup Modal -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal task-modal">
+            <div class="task-popup-icon">📋</div>
+            <h2>ภารกิจใหม่!</h2>
+            <div class="task-popup-description" id="task-popup-description"></div>
+            <div class="task-popup-details">
+                <div class="task-detail-item">
+                    <span class="task-detail-label">📍 สถานที่:</span>
+                    <span class="task-detail-value" id="task-popup-room"></span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">🔌 อุปกรณ์:</span>
+                    <span class="task-detail-value" id="task-popup-appliance"></span>
+                </div>
+                <div class="task-detail-item">
+                    <span class="task-detail-label">⏱️ เวลา:</span>
+                    <span class="task-detail-value">5 วินาที</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-task-start" onclick="game.closeTaskPopup()">
+                เริ่มภารกิจ! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Start Modal -->
+    <div class="modal-overlay active" id="start-modal">
+        <div class="modal">
+            <h2>🏠 ยินดีต้อนรับสู่ Watt Watcher</h2>
+            <p><strong>เป้าหมาย:</strong> บริหารจัดการบ้านให้รอดพ้น 90 วินาที<br>
+            <strong>กฎ:</strong> ห้ามให้กำลังไฟเกิน 10.0 kW<br>
+            <strong>หมายเหตุ:</strong> รักษาความสุขให้สูงกว่า 30%<br>
+            ทำภารกิจให้สำเร็จภายในเวลาที่กำหนด</p>
+            <button class="btn btn-primary" onclick="game.startGame()">เริ่มเกม</button>
+        </div>
+    </div>
+
+    <!-- Blackout Modal -->
+    <div class="modal-overlay" id="blackout-modal">
+        <div class="modal blackout-modal">
+            <h2>⚠️ ไฟดับ!</h2>
+            <p>กดค้างปุ่มเพื่อรีสตาร์ทระบบ (4 วินาที)</p>
+            <button class="btn btn-primary btn-hold" id="restart-btn">
+                <div class="hold-progress" id="hold-progress"></div>
+                <span style="position: relative; z-index: 1;">กดค้างเพื่อรีสตาร์ท</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal-overlay" id="gameover-modal">
+        <div class="modal">
+            <h2 id="gameover-title">Game Over</h2>
+            <p id="gameover-message"></p>
+            <button class="btn btn-primary" onclick="location.reload()">เริ่มเกมใหม่</button>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div class="modal-overlay" id="victory-modal">
+        <div class="modal">
+            <h2>🎉 ชนะแล้ว!</h2>
+            <p id="victory-message">คุณบริหารจัดการบ้านได้สำเร็จ!</p>
+            <button class="btn btn-primary" onclick="location.reload()">เล่นอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

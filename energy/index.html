@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมจับคู่พลังงานทดแทน</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .reset-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+        }
+
+        .card {
+            aspect-ratio: 3/4;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            transform: rotateY(180deg);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .card-back,
+        .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-image: url('images/cover.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card-front {
+            background: white;
+            transform: rotateY(180deg);
+            padding: 15px;
+        }
+
+        .card-front img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .card-text {
+            text-align: center;
+            width: 100%;
+        }
+
+        .thai-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .english-text {
+            font-size: 1rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Win Message Modal */
+        #win-message {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .win-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .win-content h2 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .win-content p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .win-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            #game-board {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .thai-text {
+                font-size: 1rem;
+            }
+
+            .english-text {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌿 เกมจับคู่พลังงานทดแทน 🌿</h1>
+            <p class="subtitle">จับคู่ชื่อพลังงานกับรูปภาพให้ถูกต้อง</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <span>🎯 จำนวนครั้ง:</span>
+                <span class="stat-value" id="moves">0</span>
+            </div>
+            <div class="stat">
+                <span>✅ คู่ที่จับได้:</span>
+                <span class="stat-value" id="pairs">0/6</span>
+            </div>
+            <button class="reset-btn" onclick="resetGame()">🔄 เริ่มใหม่</button>
+        </div>
+
+        <div id="game-board"></div>
+    </div>
+
+    <!-- Win Message Modal -->
+    <div id="win-message">
+        <div class="win-content">
+            <h2>🎉 ยินดีด้วย! 🎉</h2>
+            <p>คุณจับคู่สำเร็จทั้งหมดใน <strong id="final-moves">0</strong> ครั้ง</p>
+            <div class="win-buttons">
+                <button class="btn btn-primary" onclick="resetGame()">เล่นอีกครั้ง</button>
+                <button class="btn btn-secondary" onclick="closeWinMessage()">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
