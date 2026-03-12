@@ -1,0 +1,47 @@
+{
+  "categories": [
+    {
+      "id": "green",
+      "name": "มิตร Green Thailand",
+      "thumbnail": "img/thumb1.png",
+      "images": [
+        "img/green/R1.png",
+        "img/green/R2.png",
+        "img/green/R3.png",
+        "img/green/R4.png",
+        "img/green/R5.png",
+        "img/green/R6.jpg"
+      ]
+    },
+    {
+      "id": "fruits",
+      "name": "Choice 2 Change:<br>Net Zero Green Land",
+      "thumbnail": "img/thumb2.png"
+      
+    },
+    {
+      "id": "water",
+      "name": "Water Wise",
+      "thumbnail": "img/thumb2.png"
+      
+    },
+    {
+      "id": "watt",
+      "name": "Watt Watcher",
+      "thumbnail": "img/thumb2.png"
+      
+    },
+    {
+      "id": "energy",
+      "name": "Energy En-ner-joy",
+      "thumbnail": "img/thumb2.png"
+      
+    },
+    {
+      "id": "upcycle",
+      "name": "Upcycle Evolution",
+      "thumbnail": "img/thumb2.png"
+      
+    }
+  ]
+}
