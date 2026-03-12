@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เลือกเกม</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .category-icon {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .category-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .category-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .category-icon {
+                height: 120px;
+                font-size: 3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 เกม Flip Card 🎮</h1>
+            <p>เลือกเกม ที่คุณต้องการ</p>
+        </div>
+
+        <div id="loading" class="loading">กำลังโหลด...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="categoriesGrid" class="categories-grid"></div>
+    </div>
+
+    <script>
+        let categoriesData = null;
+
+        // ฟังก์ชันโหลดข้อมูลจาก JSON
+        async function loadCategories() {
+            try {
+                const response = await fetch('cards-config.json');
+                if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูลได้');
+                
+                const data = await response.json();
+                categoriesData = data.categories;
+                displayCategories();
+            } catch (error) {
+                showError('ไม่สามารถโหลดข้อมูลหมวดหมู่ได้ กรุณาตรวจสอบไฟล์ cards-config.json');
+                console.error('Error:', error);
+            }
+        }
+
+        // ฟังก์ชันแสดงหมวดหมู่
+        function displayCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            const loading = document.getElementById('loading');
+            
+            loading.style.display = 'none';
+            grid.innerHTML = '';
+
+            // เพิ่ม (category, index) เพื่อดึงลำดับมาใช้
+            categoriesData.forEach((category, index) => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                
+                // ส่ง index ไปด้วยเมื่อมีการคลิก
+                card.onclick = () => selectCategory(category, index);
+                
+                card.innerHTML = `
+                    <div class="category-icon">
+                        <img src="${category.thumbnail}" 
+                             alt="${category.name}"
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='🎴';">
+                    </div>
+                    <div class="category-name">${category.name}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // ฟังก์ชันเลือกหมวดหมู่และส่งต่อไปหน้าเกม
+        function selectCategory(category, index) {
+            // เก็บข้อมูลหมวดหมู่ใน localStorage
+            localStorage.setItem('selectedCategory', JSON.stringify(category));
+            
+            // ตรวจสอบเงื่อนไข: ถ้าเป็นตัวเลือกที่ 2 (index คือ 1) ให้ไป game2.html
+            if (index === 0) {
+				window.location.href = 'game.html';
+            } else if (index === 1) {
+				window.location.href = 'game2.html';
+			} else if (index === 2) {
+				window.location.href = 'waterwise/index.html';
+			} else if (index === 3) {
+				window.location.href = 'wattwatcher/index.html';
+			} else if (index === 4) {
+				window.location.href = 'energy/index.html';
+			} else if (index === 5) {
+				window.location.href = 'upcycle/index.html';
+			}
+		}
+
+        // ฟังก์ชันแสดงข้อผิดพลาด
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            error.textContent = message;
+        }
+
+        // โหลดข้อมูลเมื่อเปิดหน้า
+        loadCategories();
+    </script>
+</body>
+</html>
