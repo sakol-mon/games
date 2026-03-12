@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Quiz Game (Low Carbon Trip)</title>
+    <style>
+        /* CSS หลักสำหรับ Body และ Background */
+        body { 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 0;
+            
+            /* กำหนดสีพื้นหลังหลัก (สีเขียวอ่อน) สำหรับส่วนที่ภาพไม่ครอบคลุม */
+            background-color: #e0f2f1; /* Pale Teal */
+            
+            /* กำหนดขนาดและการจัดวางของภาพพื้นหลัง */
+            background-size: auto 100vh; /* ความสูงเต็ม 100% ของ Viewport Height (vh) */
+            background-position: center;  
+            background-repeat: no-repeat; 
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out; 
+            
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            /* จัดวางคอนเทนเนอร์ให้ชิดขอบด้านล่าง */
+            align-items: flex-end; 
+        }
+        
+        /* สไตล์สำหรับกรอบข้อความหลักของเกม */
+        .game-container { 
+            width: 90%; 
+            max-width: 700px;
+            margin: 0 20px 20px 20px;
+            /* ลด Padding ลงเพื่อลดพื้นที่ว่างในกรอบข้อความ */
+            padding: 15px 20px; 
+            
+            background-color: rgba(255, 255, 255, 0.9); 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); 
+            text-align: left;
+        }
+
+        /* สไตล์สำหรับหัวข้อและคำถาม */
+        h1 { text-align: center; margin-top: 0; color: #333; font-size: 1.6em; }
+        
+        /* ขนาดตัวอักษรของคำถาม (1.2em) */
+        #question { 
+            font-size: 1.2em; 
+            margin-bottom: 15px; 
+            color: #333; 
+            text-align: center; 
+            font-weight: bold; 
+        }
+        
+        #score-display { 
+            margin-top: 15px; 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            color: #28a745; 
+            text-align: center;
+        }
+
+        /* *** สไตล์สำหรับตัวเลือก (2x2 Grid) *** */
+        #options-container {
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            padding-bottom: 5px; 
+        }
+
+        .option-button { 
+            width: 48%; 
+            min-height: 70px; 
+            box-sizing: border-box; 
+            
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+
+            padding: 10px; 
+            margin: 0; 
+            
+            /* *** ขนาดตัวอักษรคำตอบ 5% (0.9em * 1.05 = 0.945em) *** */
+            font-size: 0.945em; 
+
+            background-color: #007bff; 
+            color: white; 
+            border: 3px solid #0056b3; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            text-align: center;
+            transition: background-color 0.3s, transform 0.1s; 
+            word-break: break-word; 
+        }
+        
+        .option-button:hover { 
+            background-color: #0056b3; 
+            transform: scale(1.02);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>เกมเรื่องราว: ทริปกรีนแลนด์</h1>
+        <p id="question">กำลังโหลดเนื้อเรื่อง...</p>
+        <div id="options-container">
+            </div>
+        <div id="score-display">เตรียมพร้อมสำหรับการเดินทาง!</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
