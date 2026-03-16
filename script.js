@@ -105,3 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // เริ่มโหลดข้อมูลเกม
     loadStoryData();
 });
+
+function goHome() {
+    window.location.href = 'index.html';
+}

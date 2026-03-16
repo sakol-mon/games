@@ -28,9 +28,13 @@ async function initGame() {
     }
 }
 
-// สุ่มลำดับการ์ด
+// สุ่มลำดับการ์ด (Fisher-Yates)
 function shuffleCards() {
-    gameCards = [...cardsData].sort(() => Math.random() - 0.5);
+    gameCards = [...cardsData];
+    for (let i = gameCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [gameCards[i], gameCards[j]] = [gameCards[j], gameCards[i]];
+    }
 }
 
 // สร้างการ์ดบนหน้าจอ
@@ -107,9 +111,9 @@ function checkMatch() {
     const card2Element = document.querySelector(`[data-index="${card2.index}"]`);
     
     if (card1.pairId === card2.pairId) {
-        // จับคู่ถูกต้อง
-        card1Element.classList.add('matched');
-        card2Element.classList.add('matched');
+        // จับคู่ถูกต้อง (คงหน้าไว้)
+        card1Element.classList.add('flipped', 'matched');
+        card2Element.classList.add('flipped', 'matched');
         matchedPairs++;
         
         // ตรวจสอบว่าจับคู่ครบทั้งหมดหรือยัง
@@ -144,13 +148,21 @@ function closeWinMessage() {
 
 // รีเซ็ตเกม
 function resetGame() {
+    const previousOrder = gameCards.map(card => card.id).join(',');
+
     matchedPairs = 0;
     moves = 0;
     flippedCards = [];
     canFlip = true;
-    
+
     closeWinMessage();
     shuffleCards();
+
+    // If faultily same order (very unlikely), reshuffle once
+    if (gameCards.map(card => card.id).join(',') === previousOrder) {
+        shuffleCards();
+    }
+
     renderCards();
     updateStats();
 }
@@ -163,3 +175,7 @@ function updateStats() {
 
 // เริ่มเกมเมื่อโหลดหน้าเว็บเสร็จ
 window.addEventListener('DOMContentLoaded', initGame);
+
+function goHome() {
+    window.location.href = '../index.html';
+}

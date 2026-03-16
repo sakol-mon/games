@@ -1,1 +1,22 @@
-Comming soon
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upcycle Evolution</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#80d0ff,#0093e9); margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center; }
+    .card { background:white; border-radius:16px; padding:24px; width:min(620px,90%); text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+    .home-btn { position:fixed; top:12px; right:14px; border:none; border-radius:999px; background:#fff; color:#333; font-weight:700; padding:8px 14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+    .home-btn:hover { transform:translateY(-1px); }
+  </style>
+</head>
+<body>
+  <button class="home-btn" onclick="goHome()">🏠 Home</button>
+  <div class="card">
+    <h1>Upcycle Evolution</h1>
+    <p>เกมกำลังพัฒนาอยู่ คลิก Home เพื่อกลับหน้าหลัก</p>
+  </div>
+  <script>function goHome(){window.location.href='../index.html';}</script>
+</body>
+</html>

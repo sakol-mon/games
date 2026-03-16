@@ -521,3 +521,5 @@ class WaterWiseGame {
 
 // สร้าง instance ของเกม
 const game = new WaterWiseGame();
+
+function goHome() { window.location.href = '../index.html'; }

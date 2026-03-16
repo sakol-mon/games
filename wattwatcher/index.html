@@ -596,9 +596,27 @@
                 box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
             }
         }
+
+        .home-btn {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            z-index: 2000;
+            border: none;
+            border-radius: 999px;
+            background: white;
+            color: #1e293b;
+            font-weight: 700;
+            padding: 8px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .home-btn:hover { transform: translateY(-1px); }
     </style>
 </head>
 <body>
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="game-container">
         <header>
             <h1>⚡ WATT WATCHER ⚡</h1>

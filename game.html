@@ -216,6 +216,27 @@
             margin-bottom: 10px;
         }
 
+        .home-btn {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            z-index: 2000;
+            border: none;
+            border-radius: 999px;
+            background: #ffffffcc;
+            color: #333;
+            font-size: 1rem;
+            padding: 10px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
         .overlay {
             display: none;
             position: fixed;
@@ -249,6 +270,7 @@
     </style>
 </head>
 <body>
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="header">
         <h1>🎮 เกม Flip Card 🎮</h1>
         <div class="category-info" id="categoryInfo">กำลังโหลด...</div>
@@ -451,6 +473,10 @@
         }
 
         function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function goHome() {
             window.location.href = 'index.html';
         }
 

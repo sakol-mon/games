@@ -485,9 +485,26 @@
                 font-size: 1.1rem;
             }
         }
+
+        .home-btn {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            z-index: 2000;
+            border: none;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #1f2937;
+            font-weight: 700;
+            padding: 8px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .home-btn:hover { transform: translateY(-1px); }
     </style>
 </head>
 <body>
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="container">
         <!-- Intro Screen -->
         <div id="introScreen" class="screen active">

@@ -547,3 +547,5 @@ class WattWatcherGame {
 
 // Initialize game
 const game = new WattWatcherGame();
+
+function goHome() { window.location.href = '../index.html'; }

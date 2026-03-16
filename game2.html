@@ -102,9 +102,28 @@
             transform: scale(1.02);
         }
 
+        .home-btn {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            z-index: 1000;
+            border: none;
+            border-radius: 999px;
+            background: #fff;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 8px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+
+        .home-btn:hover { transform: translateY(-1px); }
+
     </style>
 </head>
 <body>
+    <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="game-container">
         <h1>เกมเรื่องราว: ทริปกรีนแลนด์</h1>
         <p id="question">กำลังโหลดเนื้อเรื่อง...</p>
