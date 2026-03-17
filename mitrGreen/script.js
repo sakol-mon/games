@@ -6,6 +6,10 @@ let matchedPairs = 0;
 let moves = 0;
 let canFlip = true;
 
+let timerInterval = null;
+let elapsedSeconds = 0;
+let timerStarted = false;
+
 // เริ่มต้นเกม
 async function initGame() {
     try {
@@ -21,6 +25,7 @@ async function initGame() {
         renderCards();
         
         // รีเซ็ตสถิติ
+        resetTimer();
         updateStats();
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
@@ -57,17 +62,8 @@ function renderCards() {
         const cardFront = document.createElement('div');
         cardFront.className = 'card-front';
         
-        if (card.type === 'text') {
-            cardFront.innerHTML = `
-                <div class="card-text">
-                    <div class="thai-text">${card.content}</div>
-                    <div class="english-text">${card.englishName}</div>
-                </div>
-            `;
-        } else {
-            cardFront.innerHTML = `<img src="${card.image}" alt="Energy Image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'">`;
-        }
-
+        // สำหรับเกม mitrGreen เราแสดงภาพด้านหน้าเพียงอย่างเดียว
+        cardFront.innerHTML = `<img src="${card.image}" alt="Card Image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E'">`;
         const cardInner = document.createElement('div');
         cardInner.className = 'card-inner';
         cardInner.appendChild(cardBack);
@@ -96,6 +92,12 @@ function flipCard(index) {
     cardElement.classList.add('flipped');
     flippedCards.push({ index, pairId: gameCards[index].pairId });
     
+    // เริ่มจับเวลาเมื่อเปิดการ์ดใบแรก
+    if (!timerStarted) {
+        timerStarted = true;
+        startTimer();
+    }
+
     // ถ้าเปิดการ์ด 2 ใบแล้ว ตรวจสอบว่าตรงกันหรือไม่
     if (flippedCards.length === 2) {
         moves++;
@@ -138,10 +140,43 @@ function checkMatch() {
     canFlip = true;
 }
 
+// จับเวลา
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
+function updateTimerDisplay() {
+    document.getElementById('timer').textContent = formatTime(elapsedSeconds);
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
+
+function resetTimer() {
+    stopTimer();
+    elapsedSeconds = 0;
+    timerStarted = false;
+    updateTimerDisplay();
+}
+
 // แสดงข้อความชนะ
 function showWinMessage() {
+    stopTimer();
     const message = document.getElementById('win-message');
     document.getElementById('final-moves').textContent = moves;
+    document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
     message.style.display = 'flex';
 }
 

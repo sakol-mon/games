@@ -67,74 +67,80 @@
 
         .game-board {
             display: grid;
-            grid-template-columns: repeat(4, 120px);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 18px;
             margin: 0 auto;
-            width: fit-content;
+            width: min(100%, 680px);
+            justify-content: center;
         }
 
         .card {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 10px;
+            width: 140px;
+            height: 170px;
             cursor: pointer;
             position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            perspective: 1200px;
         }
 
-        .card:hover {
-            transform: scale(1.05);
-        }
-
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-        
-        .card.matched {
-            opacity: 0.5; 
-            filter: grayscale(80%); 
-            cursor: default;
-            pointer-events: none; 
-        }
-
-        .card.matched:hover {
-            transform: none;
-        }
-
-        /* เมื่อการ์ดถูกจับคู่และพลิกแล้ว ให้ด้านหลัง (รูปภาพ) มองเห็นได้เสมอ */
-        .card.matched .card-back {
-            backface-visibility: visible; 
-        }
-
-        .card-front, .card-back {
-            position: absolute;
+        .card-inner {
             width: 100%;
             height: 100%;
-            backface-visibility: hidden; /* โค้ดนี้คือตัวที่ทำให้ด้านตรงข้ามถูกซ่อนเมื่อพลิก */
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            transform-style: preserve-3d;
+            transition: transform 0.35s ease;
+        }
+
+        .card.flipped .card-inner,
+        .card.matched .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            opacity: 0.72;
+            pointer-events: none;
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            backface-visibility: hidden;
             display: flex;
-            align-items: center;
             justify-content: center;
-            border-radius: 10px;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
         }
 
         .card-front {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-size: 3em;
+            background: url('images/cover.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transform: rotateY(0deg);
         }
 
         .card-back {
-            background: white;
+            background: #fff;
             transform: rotateY(180deg);
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
         }
 
         .card-back img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .card:hover .card-inner {
+            transform: scale(1.01);
         }
 
         .controls {
@@ -358,9 +364,11 @@
                 }
 
                 cardElement.innerHTML = `
-                    <div class="card-front">❓</div> 
-                    <div class="card-back">
-                        <img src="${card.image}" alt="Card" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22>❌</text></svg>';">
+                    <div class="card-inner">
+                        <div class="card-front">❓</div>
+                        <div class="card-back">
+                            <img src="${card.image}" alt="Card" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22>❌</text></svg>';">
+                        </div>
                     </div>
                 `;
                 cardElement.addEventListener('click', () => flipCard(card.id));

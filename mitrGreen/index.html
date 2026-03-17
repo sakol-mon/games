@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมจับคู่พลังงานทดแทน</title>
+    <title>เกมจับคู่มิตร Green Thailand</title>
     <style>
         * {
             margin: 0;
@@ -310,11 +310,15 @@
     <button class="home-btn" onclick="goHome()">🏠 Home</button>
     <div class="container">
         <header>
-            <h1>🌿 เกมจับคู่พลังงานทดแทน 🌿</h1>
-            <p class="subtitle">จับคู่ชื่อพลังงานกับรูปภาพให้ถูกต้อง</p>
+            <h1>� เกมจับคู่มิตร Green Thailand 🍃</h1>
+            <p class="subtitle">จับคู่ภาพเดียวกันให้ครบทุกคู่</p>
         </header>
 
         <div class="stats-bar">
+            <div class="stat">
+                <span>⏱️ เวลา:</span>
+                <span class="stat-value" id="timer">00:00</span>
+            </div>
             <div class="stat">
                 <span>🎯 จำนวนครั้ง:</span>
                 <span class="stat-value" id="moves">0</span>
@@ -334,6 +338,7 @@
         <div class="win-content">
             <h2>🎉 ยินดีด้วย! 🎉</h2>
             <p>คุณจับคู่สำเร็จทั้งหมดใน <strong id="final-moves">0</strong> ครั้ง</p>
+            <p>เวลา: <strong id="final-time">00:00</strong></p>
             <div class="win-buttons">
                 <button class="btn btn-primary" onclick="resetGame()">เล่นอีกครั้ง</button>
                 <button class="btn btn-secondary" onclick="goHome()">กลับหน้าหลัก</button>

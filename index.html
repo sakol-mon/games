@@ -52,23 +52,34 @@
         }
 
         .category-card {
-            background: white;
+            background: linear-gradient(180deg, #fff, #f5f7ff 70%);
             border-radius: 15px;
-            padding: 25px;
+            padding: 18px;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+            border: 1px solid #e2e8f0;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .category-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateY(-6px);
+            box-shadow: 0 14px 26px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.6);
+            border-color: #cbd5e1;
+        }
+
+        .category-card:active {
+            transform: translateY(-2px) scale(0.99);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.14);
         }
 
         .category-icon {
             width: 100%;
-            height: 150px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 170px;
+            background: #f8f8f8;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -76,19 +87,23 @@
             font-size: 4em;
             margin-bottom: 15px;
             overflow: hidden;
+            border: 1px solid #ddd;
         }
 
         .category-icon img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background: #fff;
         }
 
         .category-name {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #333;
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #1f2937;
             text-align: center;
+            min-height: 3em;
+            line-height: 1.2;
         }
 
         .loading {
@@ -141,11 +156,12 @@
         // ฟังก์ชันโหลดข้อมูลจาก JSON
         async function loadCategories() {
             try {
-                const response = await fetch('cards-config.json');
+                const response = await fetch(`cards-config.json?ts=${Date.now()}`, { cache: 'no-store' });
                 if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูลได้');
                 
                 const data = await response.json();
                 categoriesData = data.categories;
+                console.log('Loaded categories', categoriesData);
                 displayCategories();
             } catch (error) {
                 showError('ไม่สามารถโหลดข้อมูลหมวดหมู่ได้ กรุณาตรวจสอบไฟล์ cards-config.json');
@@ -189,7 +205,7 @@
             
             // ตรวจสอบเงื่อนไข: ถ้าเป็นตัวเลือกที่ 2 (index คือ 1) ให้ไป game2.html
             if (index === 0) {
-				window.location.href = 'game.html';
+			window.location.href = 'mitrGreen/index.html';
             } else if (index === 1) {
 				window.location.href = 'game2.html';
 			} else if (index === 2) {
