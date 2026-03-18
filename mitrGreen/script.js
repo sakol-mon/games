@@ -10,6 +10,97 @@ let timerInterval = null;
 let elapsedSeconds = 0;
 let timerStarted = false;
 
+const LEADERBOARD_KEY = 'mitrGreenLeaderboard';
+let leaderboard = [];
+
+function sortBoard(a, b) {
+    if (a.moves !== b.moves) return a.moves - b.moves;
+    return a.timeSeconds - b.timeSeconds;
+}
+
+function saveLeaderboard() {
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+}
+
+async function loadLeaderboard() {
+    const saved = localStorage.getItem(LEADERBOARD_KEY);
+    if (saved) {
+        try {
+            leaderboard = JSON.parse(saved);
+            if (!Array.isArray(leaderboard)) leaderboard = [];
+        } catch (e) {
+            leaderboard = [];
+        }
+    } else {
+        try {
+            const response = await fetch('score.json');
+            if (response.ok) {
+                const json = await response.json();
+                if (Array.isArray(json)) {
+                    leaderboard = json;
+                } else if (Array.isArray(json.scores)) {
+                    leaderboard = json.scores;
+                }
+            }
+        } catch (e) {
+            console.warn('score.json not found or invalid. Starting with empty leaderboard.');
+            leaderboard = [];
+        }
+    }
+    leaderboard.sort(sortBoard);
+    renderLeaderboard();
+}
+
+function addLeaderboardRecord(moves, timeSeconds, name='ผู้เล่น') {
+    const recordName = name.trim() || 'ผู้เล่น';
+    const record = {
+        name: recordName,
+        moves,
+        timeSeconds,
+        time: formatTime(timeSeconds),
+        date: new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+    };
+    const exists = leaderboard.some(item => item.moves === moves && item.timeSeconds === timeSeconds && item.name === record.name);
+    if (!exists) {
+        leaderboard.push(record);
+    }
+    leaderboard.sort(sortBoard);
+    leaderboard = leaderboard.slice(0, 5);
+    saveLeaderboard();
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!leaderboard.length) {
+        list.insertAdjacentHTML('beforeend', '<li>ยังไม่มีคะแนน</li>');
+        return;
+    }
+
+    const deduped = [];
+    const seen = new Set();
+    for (const item of leaderboard) {
+        const key = `${item.moves}-${item.timeSeconds}-${item.name}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(item);
+        }
+    }
+
+    deduped.slice(0, 5).forEach((item) => {
+        const name = String(item.name || 'ผู้เล่น').replace(/^\s*\d+\.\s*/, '');
+        list.insertAdjacentHTML('beforeend', `<li>${name} - ครั้ง ${item.moves}, เวลา ${item.time} (${item.date})</li>`);
+    });
+}
+
+function clearLeaderboard() {
+    leaderboard = [];
+    saveLeaderboard();
+    renderLeaderboard();
+}
+
 // เริ่มต้นเกม
 async function initGame() {
     try {
@@ -27,6 +118,7 @@ async function initGame() {
         // รีเซ็ตสถิติ
         resetTimer();
         updateStats();
+        await loadLeaderboard();
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
         alert('ไม่สามารถโหลดข้อมูลเกมได้ กรุณาตรวจสอบไฟล์ cards.json');
@@ -174,10 +266,19 @@ function resetTimer() {
 // แสดงข้อความชนะ
 function showWinMessage() {
     stopTimer();
+    timerStarted = false;
     const message = document.getElementById('win-message');
     document.getElementById('final-moves').textContent = moves;
     document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
+    document.getElementById('player-name').value = 'ผู้เล่น';
     message.style.display = 'flex';
+}
+
+function submitScore() {
+    const name = document.getElementById('player-name').value.trim() || 'ผู้เล่น';
+    addLeaderboardRecord(moves, elapsedSeconds, name);
+    closeWinMessage();
+    resetGame();
 }
 
 // ปิดข้อความชนะ
@@ -195,6 +296,7 @@ function resetGame() {
     canFlip = true;
 
     closeWinMessage();
+    resetTimer();
     shuffleCards();
 
     // If faultily same order (very unlikely), reshuffle once

@@ -104,12 +104,18 @@
 
         #game-board {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            padding: 20px;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            padding: 18px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
+            justify-items: stretch;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 180px;
         }
 
         .card {
@@ -244,15 +250,26 @@
         }
 
         .win-content p {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 30px;
+            font-size: 1.1rem;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        .win-content input {
+            width: 100%;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.95rem;
         }
 
         .win-buttons {
             display: flex;
-            gap: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
             justify-content: center;
+            margin-top: 12px;
         }
 
         .btn {
@@ -279,7 +296,76 @@
             transform: scale(1.05);
         }
 
+        .leaderboard {
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 15px;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(7px);
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        .leaderboard h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .leaderboard-list {
+            list-style: decimal inside;
+            padding-left: 0;
+            margin: 0;
+            counter-reset: list;
+        }
+        .leaderboard {
+            margin: 10px 0 20px;
+            background: rgba(255,255,255,0.12);
+            padding: 12px;
+            border-radius: 12px;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.24);
+            backdrop-filter: blur(6px);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 0.88rem;
+        }
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+        .leaderboard h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .leaderboard-list {
+            margin: 0;
+            padding: 0 0 0 18px;
+            font-size: 0.9rem;
+        }
+        .leaderboard-list li {
+            margin: 4px 0;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
         /* Responsive */
+        @media (max-width: 1024px) {
+            #game-board {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
@@ -291,9 +377,9 @@
             }
 
             #game-board {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 10px;
-                padding: 15px;
+                padding: 10px;
             }
 
             .thai-text {
@@ -331,6 +417,14 @@
         </div>
 
         <div id="game-board"></div>
+
+        <div class="leaderboard">
+            <div class="leaderboard-header">
+                <h3>🏆 Leaderboard (Top 5)</h3>
+                <button class="reset-btn" style="background:#ffe099;color:#4c2f00;" onclick="clearLeaderboard()">🧹 ล้าง Leaderboard</button>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list"></ol>
+        </div>
     </div>
 
     <!-- Win Message Modal -->
@@ -339,8 +433,13 @@
             <h2>🎉 ยินดีด้วย! 🎉</h2>
             <p>คุณจับคู่สำเร็จทั้งหมดใน <strong id="final-moves">0</strong> ครั้ง</p>
             <p>เวลา: <strong id="final-time">00:00</strong></p>
+            <div style="margin: 10px 0; text-align: left;">
+                <label for="player-name" style="font-weight:600; color:#333;">ชื่อผู้เล่น (เพื่อบันทึกคะแนน):</label><br>
+                <input id="player-name" type="text" maxlength="20" placeholder="ชื่อของคุณ" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ccc; margin-top:5px;" />
+            </div>
             <div class="win-buttons">
-                <button class="btn btn-primary" onclick="resetGame()">เล่นอีกครั้ง</button>
+                <button class="btn btn-primary" onclick="submitScore()">บันทึกคะแนน</button>
+                <button class="btn btn-secondary" onclick="resetGame()">เล่นอีกครั้ง</button>
                 <button class="btn btn-secondary" onclick="goHome()">กลับหน้าหลัก</button>
             </div>
         </div>

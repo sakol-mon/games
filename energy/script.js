@@ -6,6 +6,101 @@ let matchedPairs = 0;
 let moves = 0;
 let canFlip = true;
 
+let timerInterval = null;
+let elapsedSeconds = 0;
+let timerStarted = false;
+
+const LEADERBOARD_KEY = 'energyLeaderboard';
+let leaderboard = [];
+
+function sortBoard(a, b) {
+    if (a.moves !== b.moves) return a.moves - b.moves;
+    return a.timeSeconds - b.timeSeconds;
+}
+
+function saveLeaderboard() {
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+}
+
+async function loadLeaderboard() {
+    const saved = localStorage.getItem(LEADERBOARD_KEY);
+    if (saved) {
+        try {
+            leaderboard = JSON.parse(saved);
+            if (!Array.isArray(leaderboard)) leaderboard = [];
+        } catch (e) {
+            leaderboard = [];
+        }
+    } else {
+        try {
+            const response = await fetch('score.json');
+            if (response.ok) {
+                const json = await response.json();
+                if (Array.isArray(json)) {
+                    leaderboard = json;
+                } else if (Array.isArray(json.scores)) {
+                    leaderboard = json.scores;
+                }
+            }
+        } catch (e) {
+            console.warn('score.json not found or invalid. Starting with empty leaderboard.');
+            leaderboard = [];
+        }
+    }
+    leaderboard.sort(sortBoard);
+    renderLeaderboard();
+}
+
+function addLeaderboardRecord(moves, timeSeconds, name='ผู้เล่น') {
+    const recordName = name.trim() || 'ผู้เล่น';
+    const record = {
+        name: recordName,
+        moves,
+        timeSeconds,
+        time: formatTime(timeSeconds),
+        date: new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+    };
+    const exists = leaderboard.some(item => item.moves === moves && item.timeSeconds === timeSeconds && item.name === record.name);
+    if (!exists) {
+        leaderboard.push(record);
+    }
+    leaderboard.sort(sortBoard);
+    leaderboard = leaderboard.slice(0, 5);
+    saveLeaderboard();
+    renderLeaderboard();
+}
+
+function renderLeaderboard() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!leaderboard.length) {
+        list.insertAdjacentHTML('beforeend', '<li>ยังไม่มีคะแนน</li>');
+        return;
+    }
+
+    const deduped = [];
+    const seen = new Set();
+    for (const item of leaderboard) {
+        const key = `${item.moves}-${item.timeSeconds}-${item.name}`;
+        if (!seen.has(key)) {
+            seen.add(key);
+            deduped.push(item);
+        }
+    }
+
+    deduped.slice(0, 5).forEach((item) => {
+        const name = String(item.name || 'ผู้เล่น').replace(/^\s*\d+\.\s*/, '');
+        list.insertAdjacentHTML('beforeend', `<li>${name} - ครั้ง ${item.moves}, เวลา ${item.time} (${item.date})</li>`);
+    });
+}
+
+function clearLeaderboard() {
+    leaderboard = [];
+    saveLeaderboard();
+    renderLeaderboard();
+}
+
 // เริ่มต้นเกม
 async function initGame() {
     try {
@@ -21,7 +116,9 @@ async function initGame() {
         renderCards();
         
         // รีเซ็ตสถิติ
+        resetTimer();
         updateStats();
+        await loadLeaderboard();
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
         alert('ไม่สามารถโหลดข้อมูลเกมได้ กรุณาตรวจสอบไฟล์ cards.json');
@@ -95,13 +192,19 @@ function flipCard(index) {
     // เปิดการ์ด
     cardElement.classList.add('flipped');
     flippedCards.push({ index, pairId: gameCards[index].pairId });
+
+    // เริ่มจับเวลาเมื่อเปิดการ์ดใบแรก
+    if (!timerStarted) {
+        timerStarted = true;
+        startTimer();
+    }
     
     // ถ้าเปิดการ์ด 2 ใบแล้ว ตรวจสอบว่าตรงกันหรือไม่
     if (flippedCards.length === 2) {
         moves++;
         updateStats();
         canFlip = false;
-        
+
         setTimeout(() => {
             checkMatch();
         }, 1000);
@@ -138,11 +241,53 @@ function checkMatch() {
     canFlip = true;
 }
 
+// จับเวลา
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
+function updateTimerDisplay() {
+    document.getElementById('timer').textContent = formatTime(elapsedSeconds);
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
+
+function resetTimer() {
+    stopTimer();
+    elapsedSeconds = 0;
+    timerStarted = false;
+    updateTimerDisplay();
+}
+
 // แสดงข้อความชนะ
 function showWinMessage() {
+    stopTimer();
+    timerStarted = false;
     const message = document.getElementById('win-message');
     document.getElementById('final-moves').textContent = moves;
+    document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
+    document.getElementById('player-name').value = 'ผู้เล่น';
     message.style.display = 'flex';
+}
+
+function submitScore() {
+    const name = document.getElementById('player-name').value.trim() || 'ผู้เล่น';
+    addLeaderboardRecord(moves, elapsedSeconds, name);
+    closeWinMessage();
+    resetGame();
 }
 
 // ปิดข้อความชนะ
@@ -156,10 +301,12 @@ function resetGame() {
 
     matchedPairs = 0;
     moves = 0;
+    elapsedSeconds = 0;
     flippedCards = [];
     canFlip = true;
 
     closeWinMessage();
+    resetTimer();
     shuffleCards();
 
     // If faultily same order (very unlikely), reshuffle once
@@ -175,6 +322,7 @@ function resetGame() {
 function updateStats() {
     document.getElementById('moves').textContent = moves;
     document.getElementById('pairs').textContent = `${matchedPairs}/${cardsData.length / 2}`;
+    updateTimerDisplay();
 }
 
 // เริ่มเกมเมื่อโหลดหน้าเว็บเสร็จ

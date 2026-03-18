@@ -3,15 +3,8 @@
     {
       "id": "green",
       "name": "มิตร Green Thailand",
-      "thumbnail": "img/cover1.png",
-      "images": [
-        "img/green/R1.png",
-        "img/green/R2.png",
-        "img/green/R3.png",
-        "img/green/R4.png",
-        "img/green/R5.png",
-        "img/green/R6.jpg"
-      ]
+      "thumbnail": "img/cover1.png"
+      
     },
     {
       "id": "fruits",
