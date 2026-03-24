@@ -398,6 +398,7 @@
         <header>
             <h1>� เกมจับคู่มิตร Green Thailand 🍃</h1>
             <p class="subtitle">จับคู่ภาพเดียวกันให้ครบทุกคู่</p>
+            <p id="player-name-display" style="margin-top: 8px; font-size: 1rem; color: white; opacity: 0.95;"></p>
         </header>
 
         <div class="stats-bar">
@@ -418,13 +419,6 @@
 
         <div id="game-board"></div>
 
-        <div class="leaderboard">
-            <div class="leaderboard-header">
-                <h3>🏆 Leaderboard (Top 5)</h3>
-                <button class="reset-btn" style="background:#ffe099;color:#4c2f00;" onclick="clearLeaderboard()">🧹 ล้าง Leaderboard</button>
-            </div>
-            <ol id="leaderboard-list" class="leaderboard-list"></ol>
-        </div>
     </div>
 
     <!-- Win Message Modal -->
@@ -433,10 +427,6 @@
             <h2>🎉 ยินดีด้วย! 🎉</h2>
             <p>คุณจับคู่สำเร็จทั้งหมดใน <strong id="final-moves">0</strong> ครั้ง</p>
             <p>เวลา: <strong id="final-time">00:00</strong></p>
-            <div style="margin: 10px 0; text-align: left;">
-                <label for="player-name" style="font-weight:600; color:#333;">ชื่อผู้เล่น (เพื่อบันทึกคะแนน):</label><br>
-                <input id="player-name" type="text" maxlength="20" placeholder="ชื่อของคุณ" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ccc; margin-top:5px;" />
-            </div>
             <div class="win-buttons">
                 <button class="btn btn-primary" onclick="submitScore()">บันทึกคะแนน</button>
                 <button class="btn btn-secondary" onclick="resetGame()">เล่นอีกครั้ง</button>
@@ -445,6 +435,14 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { supabase, getLeaderboard, insertScore, subscribeLeaderboard } from '../supabase.js';
+        window.supabase = supabase;
+        window.getLeaderboard = getLeaderboard;
+        window.insertScore = insertScore;
+        window.subscribeLeaderboard = subscribeLeaderboard;
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

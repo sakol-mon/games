@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Submit Score - mitrGreen</title>
+</head>
+<body>
+
+  <h2>🎮 Test Submit Score (mitrGreen)</h2>
+
+  <form id="scoreForm">
+    <label>ชื่อผู้เล่น:</label><br>
+    <input type="text" id="player_name" required><br><br>
+
+
+<label>ชื่อเกม (game_id):</label><br>
+<input type="text" id="game_id" value="mitrGreen"><br><br>
+
+<label>คะแนน (score):</label><br>
+<input type="number" id="score" required><br><br>
+
+<label>เวลา (วินาที):</label><br>
+<input type="number" id="time" required><br><br>
+
+<button type="submit">📤 ส่งคะแนน</button>
+
+
+  </form>
+
+  <hr>
+
+  <h3>📊 Leaderboard (Top 10)</h3>
+  <button id="loadBtn">โหลดข้อมูล</button>
+
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>ชื่อ</th>
+        <th>คะแนน</th>
+        <th>เวลา</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+
+  <script type="module">
+    import { insertScore, getLeaderboard, subscribeLeaderboard } from '../supabase.js';
+
+    const form = document.getElementById('scoreForm');
+    const tableBody = document.getElementById('leaderboardBody');
+    const loadBtn = document.getElementById('loadBtn');
+
+    // =========================
+    // ส่งคะแนน
+    // =========================
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const player_name = document.getElementById('player_name').value;
+      const game_id = document.getElementById('game_id').value;
+      const score = Number(document.getElementById('score').value);
+      const time = Number(document.getElementById('time').value);
+
+      const result = await insertScore({
+        game_id,
+        player_name,
+        score,
+        time
+      });
+
+      console.log("Insert result:", result); // 🔍 debug
+
+      if (result.success) {
+        alert('✅ ส่งคะแนนสำเร็จ');
+        form.reset();
+        document.getElementById('game_id').value = "mitrGreen";
+        loadLeaderboard();
+      } else {
+        alert('❌ ส่งไม่สำเร็จ');
+        console.error(result.error);
+      }
+    });
+
+    // =========================
+    // โหลด leaderboard
+    // =========================
+    async function loadLeaderboard() {
+      const game_id = document.getElementById('game_id').value;
+      const data = await getLeaderboard(game_id);
+
+      tableBody.innerHTML = '';
+
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${row.player_name}</td>
+          <td>${row.score}</td>
+          <td>${row.time}</td>
+        `;
+
+        tableBody.appendChild(tr);
+      });
+    }
+
+    loadBtn.addEventListener('click', loadLeaderboard);
+
+    // =========================
+    // REALTIME
+    // =========================
+    subscribeLeaderboard("mitrGreen", () => {
+      loadLeaderboard();
+    });
+
+  </script>
+
+</body>
+</html>

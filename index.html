@@ -121,6 +121,10 @@
             margin: 20px 0;
         }
 
+        .hidden {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2em;
@@ -143,12 +147,27 @@
         <div class="header">
             <h1>🎮 Environment Games 🎮</h1>
             <p>เลือกเกม ที่คุณต้องการ</p>
+            <p id="player-name-display" style="margin-top: 8px; font-size: 1.1em; color: #fff; opacity: 0.95;"></p>
         </div>
 
         <div id="loading" class="loading">กำลังโหลด...</div>
         <div id="error" class="error" style="display: none;"></div>
         <div id="categoriesGrid" class="categories-grid"></div>
     </div>
+
+    <!-- Modal for player name -->
+    <div id="name-modal" style="display:none; position: fixed; inset:0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center;">
+        <div style="background:white; border-radius:12px; padding:20px; max-width:400px; width:90%; text-align:center;">
+            <h2>กรุณาป้อนชื่อของคุณ</h2>
+            <input id="player-name-input" type="text" placeholder="ชื่อของคุณ" style="width:100%; padding:10px; margin:10px 0; font-size:16px;" maxlength="20" />
+            <button onclick="savePlayerName()" style="padding:10px 20px; font-size:16px; border:none; background:#667eea; color:white; border-radius:8px; cursor:pointer;">บันทึกชื่อ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkPlayerNameExist } from './supabase.js';
+        window.checkPlayerNameExist = checkPlayerNameExist;
+    </script>
 
     <script>
         let categoriesData = null;
@@ -229,8 +248,57 @@
             error.textContent = message;
         }
 
+        // ตรวจชื่อผู้เล่นใน sessionStorage
+        function renderPlayerName() {
+            const playerName = sessionStorage.getItem('player_name') || '';
+            const display = document.getElementById('player-name-display');
+            if (display) {
+                if (playerName) {
+                    display.textContent = `ผู้เล่น: ${playerName}`;
+                } else {
+                    display.textContent = '';
+                }
+            }
+        }
+
+        function checkPlayerName() {
+            const name = sessionStorage.getItem('player_name');
+            if (name && name.trim()) {
+                renderPlayerName();
+                loadCategories();
+            } else {
+                document.getElementById('name-modal').style.display = 'flex';
+            }
+        }
+
+        async function savePlayerName() {
+            const input = document.getElementById('player-name-input');
+            const name = input.value.trim();
+            if (!name) {
+                alert('กรุณากรอกชื่อก่อน');
+                return;
+            }
+
+            // Check duplicate name in Supabase for mitrGreen
+            if (window.checkPlayerNameExist) {
+                const exists = await window.checkPlayerNameExist('mitrGreen', name);
+                if (exists) {
+                    const useExisting = confirm('ชื่อเล่นนี้มีอยู่ในระบบแล้ว\n\nOK: ใช้ชื่อนี้ต่อ\nยกเลิก: ตั้งชื่อใหม่');
+                    if (!useExisting) {
+                        input.value = '';
+                        return;
+                    }
+                }
+            }
+
+            sessionStorage.setItem('player_name', name);
+            document.getElementById('name-modal').style.display = 'none';
+            renderPlayerName();
+            loadCategories();
+        }
+
         // โหลดข้อมูลเมื่อเปิดหน้า
-        loadCategories();
+        checkPlayerName();
     </script>
 </body>
 </html>

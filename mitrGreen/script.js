@@ -23,32 +23,38 @@ function saveLeaderboard() {
 }
 
 async function loadLeaderboard() {
-    const saved = localStorage.getItem(LEADERBOARD_KEY);
-    if (saved) {
+    let scores = [];
+
+    // First, try load from Supabase if available
+    if (window.getLeaderboard) {
         try {
-            leaderboard = JSON.parse(saved);
-            if (!Array.isArray(leaderboard)) leaderboard = [];
-        } catch (e) {
-            leaderboard = [];
-        }
-    } else {
-        try {
-            const response = await fetch('score.json');
-            if (response.ok) {
-                const json = await response.json();
-                if (Array.isArray(json)) {
-                    leaderboard = json;
-                } else if (Array.isArray(json.scores)) {
-                    leaderboard = json.scores;
-                }
-            }
-        } catch (e) {
-            console.warn('score.json not found or invalid. Starting with empty leaderboard.');
-            leaderboard = [];
+            scores = await window.getLeaderboard('mitrGreen');
+        } catch (error) {
+            console.warn('Cannot load leaderboard from Supabase:', error);
         }
     }
-    leaderboard.sort(sortBoard);
-    renderLeaderboard();
+
+    // Fallback to local leaderboard if Supabase not available or empty
+    if (!scores || !scores.length) {
+        const saved = localStorage.getItem(LEADERBOARD_KEY);
+        if (saved) {
+            try {
+                leaderboard = JSON.parse(saved);
+                if (Array.isArray(leaderboard)) {
+                    scores = leaderboard.map((item) => ({
+                        player_name: item.name,
+                        score: item.moves,
+                        time: item.timeSeconds,
+                        played_at: item.date
+                    }));
+                }
+            } catch {
+                // ignore
+            }
+        }
+    }
+
+    renderLeaderboard(scores || []);
 }
 
 function addLeaderboardRecord(moves, timeSeconds, name='ผู้เล่น') {
@@ -70,28 +76,40 @@ function addLeaderboardRecord(moves, timeSeconds, name='ผู้เล่น') 
     renderLeaderboard();
 }
 
-function renderLeaderboard() {
+// ส่งคะแนนไป Supabase เมื่อมี config
+async function submitScoreToSupabase(score, timeSeconds, playerName) {
+    if (window.insertScore) {
+        try {
+            await window.insertScore({
+                game_id: 'mitrGreen',
+                player_name: playerName,
+                score: score,
+                time: timeSeconds
+            });
+        } catch (error) {
+            console.warn('Supabase insert error:', error);
+        }
+    }
+}
+
+
+function renderLeaderboard(scores = []) {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
     list.innerHTML = '';
-    if (!leaderboard.length) {
+
+    if (!scores.length) {
         list.insertAdjacentHTML('beforeend', '<li>ยังไม่มีคะแนน</li>');
         return;
     }
 
-    const deduped = [];
-    const seen = new Set();
-    for (const item of leaderboard) {
-        const key = `${item.moves}-${item.timeSeconds}-${item.name}`;
-        if (!seen.has(key)) {
-            seen.add(key);
-            deduped.push(item);
-        }
-    }
+    scores.slice(0, 10).forEach((item, index) => {
+        const name = item.player_name || 'ผู้เล่น';
+        const score = item.score ?? item.moves ?? 0;
+        const time = item.time ?? formatTime(item.timeSeconds ?? 0);
+        const played_at = item.played_at || item.date || '';
 
-    deduped.slice(0, 5).forEach((item) => {
-        const name = String(item.name || 'ผู้เล่น').replace(/^\s*\d+\.\s*/, '');
-        list.insertAdjacentHTML('beforeend', `<li>${name} - ครั้ง ${item.moves}, เวลา ${item.time} (${item.date})</li>`);
+        list.insertAdjacentHTML('beforeend', `<li>${index + 1}. ${name} - คะแนน: ${score}, เวลา: ${time}${played_at ? ' (' + played_at + ')' : ''}</li>`);
     });
 }
 
@@ -103,12 +121,24 @@ function clearLeaderboard() {
 
 // เริ่มต้นเกม
 async function initGame() {
+    const playerName = sessionStorage.getItem('player_name');
+
+    if (!playerName || !playerName.trim()) {
+        alert('กรุณาตั้งชื่อก่อนเล่นเกม');
+        window.location.href = '../index.html';
+        return;
+    }
+
+
     try {
         // โหลดข้อมูลการ์ดจากไฟล์ JSON
         const response = await fetch('cards.json');
         const data = await response.json();
         cardsData = data.cards;
         
+        // รีเฟรชแสดงชื่อผู้เล่น
+        renderPlayerName();
+
         // สุ่มลำดับการ์ด
         shuffleCards();
         
@@ -119,9 +149,31 @@ async function initGame() {
         resetTimer();
         updateStats();
         await loadLeaderboard();
+        setupRealtimeSubscription();
     } catch (error) {
         console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
         alert('ไม่สามารถโหลดข้อมูลเกมได้ กรุณาตรวจสอบไฟล์ cards.json');
+    }
+}
+
+function renderPlayerName() {
+    const playerName = sessionStorage.getItem('player_name') || '';
+    const display = document.getElementById('player-name-display');
+    if (display) {
+        if (playerName) {
+            display.textContent = `ผู้เล่น: ${playerName}`;
+        } else {
+            display.textContent = '';
+        }
+    }
+}
+
+function setupRealtimeSubscription() {
+    if (window.subscribeLeaderboard) {
+        window.subscribeLeaderboard('mitrGreen', (newRecord) => {
+            console.log('Realtime score update:', newRecord);
+            loadLeaderboard();
+        });
     }
 }
 
@@ -270,13 +322,13 @@ function showWinMessage() {
     const message = document.getElementById('win-message');
     document.getElementById('final-moves').textContent = moves;
     document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
-    document.getElementById('player-name').value = 'ผู้เล่น';
     message.style.display = 'flex';
 }
 
 function submitScore() {
-    const name = document.getElementById('player-name').value.trim() || 'ผู้เล่น';
-    addLeaderboardRecord(moves, elapsedSeconds, name);
+    const playerName = sessionStorage.getItem('player_name') || 'ผู้เล่น';
+    addLeaderboardRecord(moves, elapsedSeconds, playerName);
+    submitScoreToSupabase(moves, elapsedSeconds, playerName);
     closeWinMessage();
     resetGame();
 }
