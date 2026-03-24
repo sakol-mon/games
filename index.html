@@ -125,6 +125,130 @@
             display: none;
         }
 
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 23, 18, 0.56);
+            backdrop-filter: blur(6px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(92vw, 440px);
+            background: linear-gradient(180deg, #ffffff 0%, #eefcf7 100%);
+            border-radius: 22px;
+            padding: 28px;
+            border: 1px solid rgba(4, 173, 137, 0.18);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+            text-align: center;
+        }
+
+        .modal-heading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .modal-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #5bd3b7 0%, #04ad89 100%);
+            color: white;
+            font-size: 1.6rem;
+            box-shadow: 0 12px 24px rgba(4, 173, 137, 0.25);
+        }
+
+        .modal-title {
+            color: #0f172a;
+            font-size: 1.55rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .modal-text {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            border: 1px solid #b9e6d8;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-input:focus {
+            border-color: #04ad89;
+            box-shadow: 0 0 0 4px rgba(4, 173, 137, 0.16);
+        }
+
+        .modal-error {
+            min-height: 22px;
+            margin-top: 10px;
+            color: #dc2626;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .modal-actions-center {
+            justify-content: center;
+        }
+
+        .modal-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #0ab68f 0%, #048e70 100%);
+            color: white;
+            box-shadow: 0 14px 24px rgba(4, 173, 137, 0.22);
+        }
+
+        .modal-btn-secondary {
+            background: #e7f8f2;
+            color: #0f766e;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2em;
@@ -156,11 +280,32 @@
     </div>
 
     <!-- Modal for player name -->
-    <div id="name-modal" style="display:none; position: fixed; inset:0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center;">
-        <div style="background:white; border-radius:12px; padding:20px; max-width:400px; width:90%; text-align:center;">
-            <h2>กรุณาป้อนชื่อของคุณ</h2>
-            <input id="player-name-input" type="text" placeholder="ชื่อของคุณ" style="width:100%; padding:10px; margin:10px 0; font-size:16px;" maxlength="20" />
-            <button onclick="savePlayerName()" style="padding:10px 20px; font-size:16px; border:none; background:#667eea; color:white; border-radius:8px; cursor:pointer;">บันทึกชื่อ</button>
+    <div id="name-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-heading">
+                <div class="modal-badge">🎮</div>
+                <h2 class="modal-title">ตั้งชื่อผู้เล่น</h2>
+            </div>
+            <p class="modal-text">กรอกชื่อที่ต้องการใช้ในเกม ระบบจะจำชื่อนี้ไว้จนกว่าจะปิดเบราว์เซอร์</p>
+            <input id="player-name-input" class="modal-input" type="text" placeholder="ชื่อของคุณ" maxlength="20" />
+            <div id="name-modal-error" class="modal-error"></div>
+            <div class="modal-actions">
+                <button id="save-player-name-btn" class="modal-btn modal-btn-primary" type="button">บันทึกชื่อ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="duplicate-name-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-heading">
+                <div class="modal-badge">⚠️</div>
+                <h2 class="modal-title">ชื่อนี้ถูกใช้แล้ว</h2>
+            </div>
+            <p id="duplicate-name-message" class="modal-text">ชื่อที่เลือกมีอยู่ในระบบแล้ว<br>คุณต้องการใช้ชื่อนี้ต่อ หรือกลับไปตั้งชื่อใหม่?</p>
+            <div class="modal-actions modal-actions-center">
+                <button id="rename-player-btn" class="modal-btn modal-btn-secondary" type="button">ตั้งชื่อใหม่</button>
+                <button id="use-existing-name-btn" class="modal-btn modal-btn-primary" type="button">ใช้ชื่อนี้</button>
+            </div>
         </div>
     </div>
 
@@ -171,6 +316,37 @@
 
     <script>
         let categoriesData = null;
+        let pendingPlayerName = '';
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function setNameModalError(message) {
+            const error = document.getElementById('name-modal-error');
+            if (error) {
+                error.textContent = message;
+            }
+        }
+
+        function commitPlayerName(name) {
+            sessionStorage.setItem('player_name', name);
+            closeModal('name-modal');
+            closeModal('duplicate-name-modal');
+            setNameModalError('');
+            renderPlayerName();
+            loadCategories();
+        }
 
         // ฟังก์ชันโหลดข้อมูลจาก JSON
         async function loadCategories() {
@@ -267,7 +443,11 @@
                 renderPlayerName();
                 loadCategories();
             } else {
-                document.getElementById('name-modal').style.display = 'flex';
+                openModal('name-modal');
+                requestAnimationFrame(() => {
+                    const input = document.getElementById('player-name-input');
+                    if (input) input.focus();
+                });
             }
         }
 
@@ -275,29 +455,83 @@
             const input = document.getElementById('player-name-input');
             const name = input.value.trim();
             if (!name) {
-                alert('กรุณากรอกชื่อก่อน');
+                setNameModalError('กรุณากรอกชื่อก่อน');
                 return;
             }
+
+            setNameModalError('');
 
             // Check duplicate name in Supabase for mitrGreen
             if (window.checkPlayerNameExist) {
                 const exists = await window.checkPlayerNameExist('mitrGreen', name);
                 if (exists) {
-                    const useExisting = confirm('ชื่อเล่นนี้มีอยู่ในระบบแล้ว\n\nOK: ใช้ชื่อนี้ต่อ\nยกเลิก: ตั้งชื่อใหม่');
-                    if (!useExisting) {
-                        input.value = '';
-                        return;
-                    }
+                    pendingPlayerName = name;
+                    document.getElementById('duplicate-name-message').innerHTML = `ชื่อ "${name}" มีอยู่ในระบบแล้ว<br>คุณต้องการใช้ชื่อนี้ต่อ หรือกลับไปตั้งชื่อใหม่?`;
+                    openModal('duplicate-name-modal');
+                    return;
                 }
             }
 
-            sessionStorage.setItem('player_name', name);
-            document.getElementById('name-modal').style.display = 'none';
-            renderPlayerName();
-            loadCategories();
+            commitPlayerName(name);
+        }
+
+        function bindModalEvents() {
+            const input = document.getElementById('player-name-input');
+            const saveButton = document.getElementById('save-player-name-btn');
+            const useExistingButton = document.getElementById('use-existing-name-btn');
+            const renameButton = document.getElementById('rename-player-btn');
+
+            if (input) {
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        savePlayerName();
+                    }
+                });
+
+                input.addEventListener('input', () => {
+                    setNameModalError('');
+                });
+            }
+
+            if (saveButton) {
+                saveButton.addEventListener('click', savePlayerName);
+            }
+
+            if (useExistingButton) {
+                useExistingButton.addEventListener('click', () => {
+                    if (pendingPlayerName) {
+                        commitPlayerName(pendingPlayerName);
+                    }
+                });
+            }
+
+            if (renameButton) {
+                renameButton.addEventListener('click', () => {
+                    pendingPlayerName = '';
+                    closeModal('duplicate-name-modal');
+                    openModal('name-modal');
+                    const nameInput = document.getElementById('player-name-input');
+                    if (nameInput) {
+                        nameInput.focus();
+                        nameInput.select();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', (event) => {
+                const duplicateModal = document.getElementById('duplicate-name-modal');
+                if (event.key === 'Enter' && duplicateModal && duplicateModal.classList.contains('active')) {
+                    event.preventDefault();
+                    if (renameButton) {
+                        renameButton.click();
+                    }
+                }
+            });
         }
 
         // โหลดข้อมูลเมื่อเปิดหน้า
+        bindModalEvents();
         checkPlayerName();
     </script>
 </body>
