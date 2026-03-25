@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard - เกมจับคู่พลังงานทดแทน</title>
+  <link rel="stylesheet" href="./leaderboard.css">
+</head>
+
+<body>
+
+<h1>🏆 Leaderboard - เกมจับคู่พลังงานทดแทน</h1>
+<div class="status" id="status">Loading...</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>อันดับ</th>
+      <th>ชื่อ</th>
+      <th>คะแนน</th>
+      <th>เวลา</th>
+      <th>วันที่</th>
+    </tr>
+  </thead>
+  <tbody id="body"></tbody>
+</table>
+
+<script type="module">
+import { supabase } from '../supabase.js';
+
+const tbody = document.getElementById('body');
+const statusEl = document.getElementById('status');
+
+let leaderboardMap = {};
+let previousPositions = {};
+
+function toSortableNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
+
+function isBetterResult(candidate, current) {
+  const candidateScore = toSortableNumber(candidate?.score);
+  const currentScore = toSortableNumber(current?.score);
+
+  if (candidateScore !== currentScore) {
+    return candidateScore < currentScore;
+  }
+
+  const candidateTime = toSortableNumber(candidate?.time);
+  const currentTime = toSortableNumber(current?.time);
+  return candidateTime < currentTime;
+}
+
+function parseScoreTimestamp(ts) {
+  if (!ts) return null;
+
+  if (ts instanceof Date) return ts;
+  if (typeof ts === 'number') return new Date(ts);
+
+  const normalized = String(ts).trim().replace(' ', 'T');
+  const hasTimezone = /[zZ]|[+\-]\d{2}:\d{2}$/.test(normalized);
+  return new Date(hasTimezone ? normalized : `${normalized}Z`);
+}
+
+function formatDate(ts) {
+  const date = parseScoreTimestamp(ts);
+  if (!date || Number.isNaN(date.getTime())) return '-';
+
+  return new Intl.DateTimeFormat('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(date);
+}
+
+function medal(rank) {
+  if (rank === 1) return '🥇 1';
+  if (rank === 2) return '🥈 2';
+  if (rank === 3) return '🥉 3';
+  return rank;
+}
+
+// 🔥 render + animation
+function render(animatedPlayer = null) {
+
+  const data = Object.values(leaderboardMap)
+    .sort((a, b) => {
+      const scoreDiff = toSortableNumber(a.score) - toSortableNumber(b.score);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      return toSortableNumber(a.time) - toSortableNumber(b.time);
+    })
+    .slice(0, 10);
+
+  const newPositions = {};
+
+  data.forEach((row, index) => {
+    newPositions[row.player_name] = index;
+  });
+
+  const rows = {};
+
+  data.forEach((row, i) => {
+    const rank = i + 1;
+
+    const tr = document.createElement('tr');
+
+    if (rank === 1) tr.className = 'rank-1';
+    if (rank === 2) tr.className = 'rank-2';
+    if (rank === 3) tr.className = 'rank-3';
+
+    if (row.player_name === animatedPlayer) {
+      tr.classList.add('new-row');
+    }
+
+    tr.innerHTML = `
+      <td>${medal(rank)}</td>
+      <td>${row.player_name}</td>
+      <td>${row.score}</td>
+      <td>${row.time}</td>
+      <td>${formatDate(row.played_at)}</td>
+    `;
+
+    rows[row.player_name] = tr;
+  });
+
+  tbody.innerHTML = '';
+
+  data.forEach((row) => {
+    const tr = rows[row.player_name];
+
+    const oldPos = previousPositions[row.player_name];
+    const newPos = newPositions[row.player_name];
+
+    if (oldPos !== undefined) {
+      const delta = oldPos - newPos;
+
+      if (delta !== 0) {
+        tr.style.transform = `translateY(${delta * 60}px)`;
+
+        requestAnimationFrame(() => {
+          tr.style.transform = '';
+        });
+      }
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  previousPositions = newPositions;
+
+  statusEl.textContent = "อัปเดต: " + new Date().toLocaleTimeString('th-TH', {
+    timeZone: 'Asia/Bangkok'
+  });
+}
+
+// โหลดครั้งแรก
+async function initialLoad() {
+  const { data, error } = await supabase
+    .from('scores')
+    .select('*')
+    .eq('game_id', 'energy');
+
+  if (error) {
+    statusEl.textContent = "โหลดไม่สำเร็จ";
+    console.error(error);
+    return;
+  }
+
+  data.forEach(row => {
+    const existing = leaderboardMap[row.player_name];
+    if (!existing || isBetterResult(row, existing)) {
+      leaderboardMap[row.player_name] = row;
+    }
+  });
+
+  render();
+}
+
+// realtime
+supabase
+  .channel('energy-scores-live')
+  .on('postgres_changes', {
+    event: 'INSERT',
+    schema: 'public',
+    table: 'scores'
+  }, (payload) => {
+    const row = payload.new;
+
+    if (row.game_id !== 'energy') return;
+
+    const existing = leaderboardMap[row.player_name];
+
+    if (!existing || isBetterResult(row, existing)) {
+      leaderboardMap[row.player_name] = row;
+      render(row.player_name);
+    }
+  })
+  .subscribe();
+
+initialLoad();
+
+</script>
+
+</body>
+</html>
