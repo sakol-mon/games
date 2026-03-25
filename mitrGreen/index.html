@@ -359,6 +359,83 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
+        /* Inline Leaderboard View */
+        #leaderboard-view {
+            display: none;
+        }
+
+        .leaderboard-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 24px;
+            color: white;
+        }
+
+        .leaderboard-panel h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .leaderboard-panel .lb-subtitle {
+            text-align: center;
+            opacity: 0.85;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .lb-table th,
+        .lb-table td {
+            padding: 12px 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .lb-table thead tr {
+            background: rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+        }
+
+        .lb-table tbody tr {
+            transition: transform 0.4s ease, background 0.4s ease;
+        }
+
+        .lb-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .lb-table tbody tr.new-row {
+            animation: lb-highlight 1s ease;
+        }
+
+        @keyframes lb-highlight {
+            0%   { background: rgba(34, 197, 94, 0.6); transform: scale(1.03); }
+            100% { background: transparent; transform: scale(1); }
+        }
+
+        #lb-status {
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 14px;
+        }
+
+        .lb-table .rank-1 { background: rgba(255, 215, 0, 0.25); }
+        .lb-table .rank-2 { background: rgba(192, 192, 192, 0.25); }
+        .lb-table .rank-3 { background: rgba(205, 127, 50, 0.25); }
+
+        .lb-play-again {
+            text-align: center;
+            margin-top: 8px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             #game-board {
@@ -401,23 +478,48 @@
             <p id="player-name-display" style="margin-top: 8px; font-size: 1rem; color: white; opacity: 0.95;"></p>
         </header>
 
-        <div class="stats-bar">
-            <div class="stat">
-                <span>⏱️ เวลา:</span>
-                <span class="stat-value" id="timer">00:00</span>
+        <div id="game-zone">
+            <div class="stats-bar">
+                <div class="stat">
+                    <span>⏱️ เวลา:</span>
+                    <span class="stat-value" id="timer">00:00</span>
+                </div>
+                <div class="stat">
+                    <span>🎯 จำนวนครั้ง:</span>
+                    <span class="stat-value" id="moves">0</span>
+                </div>
+                <div class="stat">
+                    <span>✅ คู่ที่จับได้:</span>
+                    <span class="stat-value" id="pairs">0/6</span>
+                </div>
+                <button class="reset-btn" onclick="resetGame()">🔄 เริ่มใหม่</button>
             </div>
-            <div class="stat">
-                <span>🎯 จำนวนครั้ง:</span>
-                <span class="stat-value" id="moves">0</span>
-            </div>
-            <div class="stat">
-                <span>✅ คู่ที่จับได้:</span>
-                <span class="stat-value" id="pairs">0/6</span>
-            </div>
-            <button class="reset-btn" onclick="resetGame()">🔄 เริ่มใหม่</button>
+
+            <div id="game-board"></div>
         </div>
 
-        <div id="game-board"></div>
+        <div id="leaderboard-view">
+            <div class="leaderboard-panel">
+                <h2>🏆 Leaderboard</h2>
+                <p class="lb-subtitle">มิตร Green Thailand — Top 10</p>
+                <div id="lb-status">กำลังโหลด...</div>
+                <table class="lb-table">
+                    <thead>
+                        <tr>
+                            <th>อันดับ</th>
+                            <th>ชื่อ</th>
+                            <th>ครั้ง</th>
+                            <th>เวลา</th>
+                            <th>วันที่</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-list"></tbody>
+                </table>
+                <div class="lb-play-again">
+                    <button class="reset-btn" onclick="playAgain()">🔄 เล่นอีกครั้ง</button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -428,9 +530,7 @@
             <p>คุณจับคู่สำเร็จทั้งหมดใน <strong id="final-moves">0</strong> ครั้ง</p>
             <p>เวลา: <strong id="final-time">00:00</strong></p>
             <div class="win-buttons">
-                <button class="btn btn-primary" onclick="submitScore()">บันทึกคะแนน</button>
-                <button class="btn btn-secondary" onclick="resetGame()">เล่นอีกครั้ง</button>
-                <button class="btn btn-secondary" onclick="goHome()">กลับหน้าหลัก</button>
+                <button class="btn btn-primary" onclick="confirmWinMessage()">ตกลง</button>
             </div>
         </div>
     </div>

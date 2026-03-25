@@ -9,6 +9,7 @@ let canFlip = true;
 let timerInterval = null;
 let elapsedSeconds = 0;
 let timerStarted = false;
+let winScoreSaved = false;
 
 const LEADERBOARD_KEY = 'mitrGreenLeaderboard';
 let leaderboard = [];
@@ -92,6 +93,16 @@ async function submitScoreToSupabase(score, timeSeconds, playerName) {
     }
 }
 
+function persistCompletedScore() {
+    if (winScoreSaved) return;
+
+    winScoreSaved = true;
+    const playerName = sessionStorage.getItem('player_name') || 'ผู้เล่น';
+
+    addLeaderboardRecord(moves, elapsedSeconds, playerName);
+    submitScoreToSupabase(moves, elapsedSeconds, playerName);
+}
+
 
 function renderLeaderboard(scores = []) {
     const list = document.getElementById('leaderboard-list');
@@ -99,17 +110,27 @@ function renderLeaderboard(scores = []) {
     list.innerHTML = '';
 
     if (!scores.length) {
-        list.insertAdjacentHTML('beforeend', '<li>ยังไม่มีคะแนน</li>');
+        list.insertAdjacentHTML('beforeend', '<tr><td colspan="5" style="opacity:0.7">ยังไม่มีคะแนน</td></tr>');
         return;
     }
 
+    function medal(rank) {
+        if (rank === 1) return '🥇';
+        if (rank === 2) return '🥈';
+        if (rank === 3) return '🥉';
+        return rank;
+    }
+
     scores.slice(0, 10).forEach((item, index) => {
+        const rank = index + 1;
         const name = item.player_name || 'ผู้เล่น';
         const score = item.score ?? item.moves ?? 0;
         const time = item.time ?? formatTime(item.timeSeconds ?? 0);
         const played_at = item.played_at || item.date || '';
+        const rankClass = rank <= 3 ? ` class="rank-${rank}"` : '';
 
-        list.insertAdjacentHTML('beforeend', `<li>${index + 1}. ${name} - คะแนน: ${score}, เวลา: ${time}${played_at ? ' (' + played_at + ')' : ''}</li>`);
+        list.insertAdjacentHTML('beforeend',
+            `<tr${rankClass}><td>${medal(rank)}</td><td>${name}</td><td>${score}</td><td>${time}</td><td>${played_at}</td></tr>`);
     });
 }
 
@@ -319,6 +340,7 @@ function resetTimer() {
 function showWinMessage() {
     stopTimer();
     timerStarted = false;
+    persistCompletedScore();
     const message = document.getElementById('win-message');
     document.getElementById('final-moves').textContent = moves;
     document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
@@ -326,10 +348,174 @@ function showWinMessage() {
 }
 
 function submitScore() {
-    const playerName = sessionStorage.getItem('player_name') || 'ผู้เล่น';
-    addLeaderboardRecord(moves, elapsedSeconds, playerName);
-    submitScoreToSupabase(moves, elapsedSeconds, playerName);
+    confirmWinMessage();
+}
+
+function confirmWinMessage() {
     closeWinMessage();
+    showLeaderboardView();
+}
+
+// ===== Inline Real-Time Leaderboard =====
+let lbMap = {};
+let lbPrevPos = {};
+let lbChannel = null;
+
+function lbToSortable(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
+
+function lbIsBetter(candidate, current) {
+    const cs = lbToSortable(candidate?.score);
+    const es = lbToSortable(current?.score);
+    if (cs !== es) return cs < es;
+    return lbToSortable(candidate?.time) < lbToSortable(current?.time);
+}
+
+function lbParseTs(ts) {
+    if (!ts) return null;
+    if (ts instanceof Date) return ts;
+    if (typeof ts === 'number') return new Date(ts);
+    const normalized = String(ts).trim().replace(' ', 'T');
+    const hasTimezone = /[zZ]|[+\-]\d{2}:\d{2}$/.test(normalized);
+    return new Date(hasTimezone ? normalized : `${normalized}Z`);
+}
+
+function lbFormatDate(ts) {
+    const date = lbParseTs(ts);
+    if (!date || Number.isNaN(date.getTime())) return '-';
+    return new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    }).format(date);
+}
+
+function lbMedal(rank) {
+    if (rank === 1) return '🥇 1';
+    if (rank === 2) return '🥈 2';
+    if (rank === 3) return '🥉 3';
+    return rank;
+}
+
+function lbRender(animatedPlayer = null) {
+    const tbody = document.getElementById('leaderboard-list');
+    const statusEl = document.getElementById('lb-status');
+    if (!tbody) return;
+
+    const data = Object.values(lbMap)
+        .sort((a, b) => {
+            const diff = lbToSortable(a.score) - lbToSortable(b.score);
+            return diff !== 0 ? diff : lbToSortable(a.time) - lbToSortable(b.time);
+        })
+        .slice(0, 10);
+
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="opacity:0.7">ยังไม่มีคะแนน</td></tr>';
+        return;
+    }
+
+    const newPos = {};
+    data.forEach((row, i) => { newPos[row.player_name] = i; });
+
+    const rowEls = {};
+    data.forEach((row, i) => {
+        const rank = i + 1;
+        const tr = document.createElement('tr');
+        if (rank === 1) tr.className = 'rank-1';
+        else if (rank === 2) tr.className = 'rank-2';
+        else if (rank === 3) tr.className = 'rank-3';
+        if (row.player_name === animatedPlayer) tr.classList.add('new-row');
+        tr.innerHTML = `<td>${lbMedal(rank)}</td><td>${row.player_name}</td><td>${row.score}</td><td>${row.time}</td><td>${lbFormatDate(row.played_at)}</td>`;
+        rowEls[row.player_name] = tr;
+    });
+
+    tbody.innerHTML = '';
+    data.forEach((row) => {
+        const tr = rowEls[row.player_name];
+        const oldIdx = lbPrevPos[row.player_name];
+        const newIdx = newPos[row.player_name];
+        if (oldIdx !== undefined && oldIdx !== newIdx) {
+            const delta = (oldIdx - newIdx) * 60;
+            tr.style.transform = `translateY(${delta}px)`;
+            requestAnimationFrame(() => { tr.style.transform = ''; });
+        }
+        tbody.appendChild(tr);
+    });
+
+    lbPrevPos = newPos;
+    if (statusEl) statusEl.textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok' });
+}
+
+async function lbInitialLoad() {
+    const statusEl = document.getElementById('lb-status');
+    if (statusEl) statusEl.textContent = 'กำลังโหลด...';
+
+    if (!window.supabase) {
+        // Fallback: use existing loadLeaderboard which calls renderLeaderboard
+        await loadLeaderboard();
+        if (statusEl) statusEl.textContent = 'โหลดจาก local';
+        return;
+    }
+
+    const { data, error } = await window.supabase
+        .from('scores')
+        .select('*')
+        .eq('game_id', 'mitrGreen');
+
+    if (error) {
+        if (statusEl) statusEl.textContent = 'โหลดไม่สำเร็จ';
+        return;
+    }
+
+    lbMap = {};
+    (data || []).forEach(row => {
+        const existing = lbMap[row.player_name];
+        if (!existing || lbIsBetter(row, existing)) {
+            lbMap[row.player_name] = row;
+        }
+    });
+    lbRender();
+}
+
+function lbSubscribe() {
+    if (!window.supabase) return;
+    lbChannel = window.supabase
+        .channel('inline-lb-live')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scores' }, (payload) => {
+            const row = payload.new;
+            if (row.game_id !== 'mitrGreen') return;
+            const existing = lbMap[row.player_name];
+            if (!existing || lbIsBetter(row, existing)) {
+                lbMap[row.player_name] = row;
+                lbRender(row.player_name);
+            }
+        })
+        .subscribe();
+}
+
+function lbUnsubscribe() {
+    if (lbChannel && window.supabase) {
+        window.supabase.removeChannel(lbChannel);
+        lbChannel = null;
+    }
+    lbMap = {};
+    lbPrevPos = {};
+}
+
+async function showLeaderboardView() {
+    document.getElementById('game-zone').style.display = 'none';
+    document.getElementById('leaderboard-view').style.display = 'block';
+    lbUnsubscribe();
+    await lbInitialLoad();
+    lbSubscribe();
+}
+
+function playAgain() {
+    lbUnsubscribe();
+    document.getElementById('leaderboard-view').style.display = 'none';
+    document.getElementById('game-zone').style.display = '';
     resetGame();
 }
 
@@ -346,6 +532,7 @@ function resetGame() {
     moves = 0;
     flippedCards = [];
     canFlip = true;
+    winScoreSaved = false;
 
     closeWinMessage();
     resetTimer();

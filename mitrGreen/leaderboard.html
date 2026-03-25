@@ -34,8 +34,49 @@ const statusEl = document.getElementById('status');
 let leaderboardMap = {};
 let previousPositions = {};
 
+function toSortableNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+}
+
+function isBetterResult(candidate, current) {
+  const candidateScore = toSortableNumber(candidate?.score);
+  const currentScore = toSortableNumber(current?.score);
+
+  if (candidateScore !== currentScore) {
+    return candidateScore < currentScore;
+  }
+
+  const candidateTime = toSortableNumber(candidate?.time);
+  const currentTime = toSortableNumber(current?.time);
+  return candidateTime < currentTime;
+}
+
+function parseScoreTimestamp(ts) {
+  if (!ts) return null;
+
+  if (ts instanceof Date) return ts;
+  if (typeof ts === 'number') return new Date(ts);
+
+  const normalized = String(ts).trim().replace(' ', 'T');
+  const hasTimezone = /[zZ]|[+\-]\d{2}:\d{2}$/.test(normalized);
+  return new Date(hasTimezone ? normalized : `${normalized}Z`);
+}
+
 function formatDate(ts) {
-  return new Date(ts).toLocaleString('th-TH');
+  const date = parseScoreTimestamp(ts);
+  if (!date || Number.isNaN(date.getTime())) return '-';
+
+  return new Intl.DateTimeFormat('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(date);
 }
 
 function medal(rank) {
@@ -49,7 +90,12 @@ function medal(rank) {
 function render(animatedPlayer = null) {
 
   const data = Object.values(leaderboardMap)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      const scoreDiff = toSortableNumber(a.score) - toSortableNumber(b.score);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      return toSortableNumber(a.time) - toSortableNumber(b.time);
+    })
     .slice(0, 10);
 
   const newPositions = {};
@@ -109,7 +155,9 @@ function render(animatedPlayer = null) {
 
   previousPositions = newPositions;
 
-  statusEl.textContent = "อัปเดต: " + new Date().toLocaleTimeString('th-TH');
+  statusEl.textContent = "อัปเดต: " + new Date().toLocaleTimeString('th-TH', {
+    timeZone: 'Asia/Bangkok'
+  });
 }
 
 // โหลดครั้งแรก
@@ -127,7 +175,7 @@ async function initialLoad() {
 
   data.forEach(row => {
     const existing = leaderboardMap[row.player_name];
-    if (!existing || row.score > existing.score) {
+    if (!existing || isBetterResult(row, existing)) {
       leaderboardMap[row.player_name] = row;
     }
   });
@@ -149,7 +197,7 @@ supabase
 
     const existing = leaderboardMap[row.player_name];
 
-    if (!existing || row.score > existing.score) {
+    if (!existing || isBetterResult(row, existing)) {
       leaderboardMap[row.player_name] = row;
       render(row.player_name);
     }
