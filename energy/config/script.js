@@ -144,7 +144,7 @@ async function initGame() {
 
     try {
         // โหลดข้อมูลการ์ดจากไฟล์ JSON
-        const response = await fetch('cards.json');
+        const response = await fetch('config/cards.json');
         const data = await response.json();
         cardsData = data.cards;
 

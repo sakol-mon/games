@@ -310,7 +310,7 @@
     </div>
 
     <script type="module">
-        import { checkPlayerNameExist } from './supabase.js';
+        import { checkPlayerNameExist } from './config/supabase.js';
         window.checkPlayerNameExist = checkPlayerNameExist;
     </script>
 
@@ -351,7 +351,7 @@
         // ฟังก์ชันโหลดข้อมูลจาก JSON
         async function loadCategories() {
             try {
-                const response = await fetch(`cards-config.json?ts=${Date.now()}`, { cache: 'no-store' });
+                const response = await fetch(`config/cards-config.json?ts=${Date.now()}`, { cache: 'no-store' });
                 if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูลได้');
                 
                 const data = await response.json();
@@ -359,7 +359,7 @@
                 console.log('Loaded categories', categoriesData);
                 displayCategories();
             } catch (error) {
-                showError('ไม่สามารถโหลดข้อมูลหมวดหมู่ได้ กรุณาตรวจสอบไฟล์ cards-config.json');
+                showError('ไม่สามารถโหลดข้อมูลหมวดหมู่ได้ กรุณาตรวจสอบไฟล์ config/cards-config.json');
                 console.error('Error:', error);
             }
         }
@@ -398,11 +398,11 @@
             // เก็บข้อมูลหมวดหมู่ใน localStorage
             localStorage.setItem('selectedCategory', JSON.stringify(category));
             
-            // ตรวจสอบเงื่อนไข: ถ้าเป็นตัวเลือกที่ 2 (index คือ 1) ให้ไป game2.html
+            // ตรวจสอบเงื่อนไข: ถ้าเป็นตัวเลือกที่ 2 (index คือ 1) ให้ไป greenLand/index.html
             if (index === 0) {
 			window.location.href = 'mitrGreen/index.html';
             } else if (index === 1) {
-				window.location.href = 'game2.html';
+                window.location.href = 'greenLand/index.html';
 			} else if (index === 2) {
 				window.location.href = 'waterwise/index.html';
 			} else if (index === 3) {

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ฟังก์ชันโหลดข้อมูลจาก JSON (เหมือนเดิม)
     async function loadStoryData() {
         try {
-            const response = await fetch('data.json');
+            const response = await fetch('config/data.json');
             storyData = await response.json();
             displayQuestion(currentQuestionId);
         } catch (error) {
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionElement.textContent = '🚩 สรุปผลทริปคาร์บอนต่ำกรีนแลนด์!';
         
         // *** การปรับปรุงสำคัญ: ใช้ END.png เป็น Background สุดท้าย ***
-        bodyElement.style.backgroundImage = `url('images/END.png')`; 
+        bodyElement.style.backgroundImage = `url('../img/game2/END.png')`; 
         
         let message = '';
         let scoreColor = '#dc3545';
@@ -107,5 +107,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function goHome() {
-    window.location.href = 'index.html';
+    window.location.href = '../index.html';
 }

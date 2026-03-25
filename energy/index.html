@@ -476,12 +476,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import { supabase, getLeaderboard, insertScore, subscribeLeaderboard } from '../supabase.js';
+        import { supabase, getLeaderboard, insertScore, subscribeLeaderboard } from '../config/supabase.js';
         window.supabase = supabase;
         window.getLeaderboard = getLeaderboard;
         window.insertScore = insertScore;
         window.subscribeLeaderboard = subscribeLeaderboard;
     </script>
-    <script src="script.js"></script>
+    <script src="config/script.js"></script>
 </body>
 </html>
