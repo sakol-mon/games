@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQuestionId = 0; 
     let totalScore = 0;
 
+    // สร้าง base URL ของหน้าเกมเพื่อ resolve path รูปภาพ/JSON ให้คงที่
+    const gameBaseUrl = new URL('./', window.location.href);
+    const resolveGameUrl = (relativePath) => new URL(relativePath, gameBaseUrl).href;
+
     // องค์ประกอบ HTML
     const bodyElement = document.body;
     const questionElement = document.getElementById('question');
@@ -13,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ฟังก์ชันโหลดข้อมูลจาก JSON (เหมือนเดิม)
     async function loadStoryData() {
         try {
-            const response = await fetch('config/data.json');
+            const response = await fetch(resolveGameUrl('../greenLand/config/data.json'));
             storyData = await response.json();
             displayQuestion(currentQuestionId);
         } catch (error) {
@@ -33,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // เปลี่ยน Background ของ Body
-        bodyElement.style.backgroundImage = `url('${question.image}')`;
+        bodyElement.style.backgroundImage = `url('${resolveGameUrl(question.image)}')`;
 
         // แสดงคำถาม
         questionElement.textContent = question.question;
@@ -77,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionElement.textContent = '🚩 สรุปผลทริปคาร์บอนต่ำกรีนแลนด์!';
         
         // *** การปรับปรุงสำคัญ: ใช้ END.png เป็น Background สุดท้าย ***
-        bodyElement.style.backgroundImage = `url('../img/game2/END.png')`; 
+        bodyElement.style.backgroundImage = `url('${resolveGameUrl('images/END.png')}')`; 
         
         let message = '';
         let scoreColor = '#dc3545';

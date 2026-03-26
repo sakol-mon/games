@@ -1,22 +1,477 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upcycle Evolution</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#80d0ff,#0093e9); margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center; }
-    .card { background:white; border-radius:16px; padding:24px; width:min(620px,90%); text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
-    .home-btn { position:fixed; top:12px; right:14px; border:none; border-radius:999px; background:#fff; color:#333; font-weight:700; padding:8px 14px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    .home-btn:hover { transform:translateY(-1px); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>♻️ เก็บขยะ!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Sarabun:wght@400;700;800&display=swap');
+
+  :root {
+    --yellow:  #FFD600;
+    --green:   #00E676;
+    --blue:    #29B6F6;
+    --red:     #FF1744;
+    --bg:      #0a0a0f;
+    --panel:   #13131f;
+    --border:  #2a2a3f;
+    --text:    #e8e8ff;
+    --dim:     #6060a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sarabun', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,.1) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,.12) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,.08) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,.1) 0%, transparent 100%),
+      radial-gradient(2px 2px at 20% 90%, rgba(255,255,255,.06) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,.1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  /* ===== SIDE PANEL ===== */
+  #side-panel {
+    width: 200px;
+    height: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+
+  .panel-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  /* Score */
+  #score-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(100,180,255,.6);
+    line-height: 1.2;
+  }
+
+  #score-delta {
+    font-size: 13px;
+    font-weight: 700;
+    height: 20px;
+    margin-top: 6px;
+    transition: opacity .3s;
+  }
+  #score-delta.pos { color: var(--green); }
+  #score-delta.neg { color: var(--red); }
+
+  /* Timer */
+  #timer-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 22px;
+    color: #fff;
+  }
+  #timer-bar-wrap {
+    margin-top: 10px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--green));
+    border-radius: 3px;
+    transition: width .1s linear, background .5s;
+    width: 100%;
+  }
+
+  /* Bin color indicator — compact horizontal */
+  #bin-color-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #bin-swatch {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,.2);
+    transition: background .4s, box-shadow .4s;
+    flex-shrink: 0;
+  }
+  #bin-color-name {
+    font-weight: 800;
+    font-size: 15px;
+    transition: color .4s;
+    flex: 1;
+  }
+  #bin-color-countdown {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  /* ===== GAME CANVAS AREA ===== */
+  #game-area {
+    position: relative;
+    width: 360px;
+    height: 700px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Scanlines overlay */
+  #game-area::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,.08) 3px,
+      rgba(0,0,0,.08) 4px
+    );
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  /* Ground line */
+  #ground-line {
+    position: absolute;
+    bottom: 90px;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* Trash items */
+  .trash {
+    position: absolute;
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-family: 'Sarabun', sans-serif;
+    box-shadow: 0 0 14px currentColor, inset 0 0 8px rgba(255,255,255,.15);
+    z-index: 10;
+    animation: wobble 1.2s ease-in-out infinite alternate;
+    cursor: default;
+    user-select: none;
+  }
+  @keyframes wobble {
+    from { transform: rotate(-6deg); }
+    to   { transform: rotate(6deg); }
+  }
+
+  /* Score pop */
+  .score-pop {
+    position: absolute;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 60;
+    animation: pop-up .8s ease-out forwards;
+  }
+  @keyframes pop-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+  }
+
+  /* Miss flash */
+  .miss-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,23,68,.18);
+    z-index: 55;
+    animation: flash-out .35s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes flash-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+
+  /* BIN */
+  #bin-wrap {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: none;
+  }
+
+  #bin-svg {
+    width: 64px; height: 80px;
+    filter: drop-shadow(0 0 10px var(--current-bin-color, #fff));
+    transition: filter .4s;
+  }
+
+  /* ===== OVERLAY (start / gameover) ===== */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,10,20,.88);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 18px;
+    border-radius: 16px;
+  }
+
+  #overlay h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    text-align: center;
+    line-height: 2;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(100,180,255,.8);
+  }
+
+  #overlay .sub {
+    font-size: 15px;
+    color: var(--dim);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  #overlay .final-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 30px;
+    color: var(--yellow);
+    text-shadow: 0 0 20px var(--yellow);
+  }
+
+  #btn-start {
+    margin-top: 8px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #29B6F6, #00E676);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(41,182,246,.5);
+    transition: transform .15s, box-shadow .15s;
+  }
+  #btn-start:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(41,182,246,.7); }
+  #btn-start:active { transform: scale(.97); }
+
+  /* ===== COMBO BADGE ===== */
+  #combo-badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    background: var(--yellow);
+    color: #000;
+    padding: 4px 8px;
+    border-radius: 6px;
+    z-index: 40;
+    display: none;
+    box-shadow: 0 0 12px var(--yellow);
+  }
+  .trash.trap-item {
+    animation: trap-pulse 0.6s ease-in-out infinite alternate !important;
+  }
+  @keyframes trap-pulse {
+    from { transform: rotate(-8deg) scale(1);   box-shadow: 0 0 12px rgba(255,109,0,.7); }
+    to   { transform: rotate(8deg)  scale(1.1); box-shadow: 0 0 24px rgba(255,50,0,1);  }
+  }
+
+  #game-area { transition: transform .08s; }
+
+  /* ===== STATS inside side panel ===== */
+  #stats-bar {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 12px 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stats-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  #stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    flex: 1;
+  }
+
+  .stat-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 4px;
+    transition: border-color .3s, background .3s;
+  }
+
+  .stat-cell.has-catch {
+    border-color: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.07);
+  }
+
+  .stat-cell .stat-emoji { font-size: 20px; line-height: 1; }
+  .stat-cell .stat-label { font-size: 8px; color: var(--dim); text-align: center; line-height: 1.2; }
+  .stat-cell .stat-count {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #fff;
+    min-height: 12px;
+  }
+  .stat-cell.trap-cell .stat-count { color: #FF1744; }
+
+  @keyframes stat-bump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+  .stat-bump { animation: stat-bump .25s ease-out; }
+
+  .home-btn {
+    position: fixed;
+    top: 12px;
+    right: 14px;
+    z-index: 1000;
+    border: none;
+    border-radius: 999px;
+    background: #fff;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+  }
+
+  .home-btn:hover { transform: translateY(-1px); }
+</style>
 </head>
 <body>
-  <button class="home-btn" onclick="goHome()">🏠 Home</button>
-  <div class="card">
-    <h1>Upcycle Evolution</h1>
-    <p>เกมกำลังพัฒนาอยู่ คลิก Home เพื่อกลับหน้าหลัก</p>
+
+<button class="home-btn" onclick="goHome()">🏠 Home</button>
+<div id="wrapper">
+
+  <!-- Side panel -->
+  <div id="side-panel">
+
+    <div class="panel-box">
+      <div class="panel-title">คะแนน</div>
+      <div id="score-value">0</div>
+      <div id="score-delta"></div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title">เวลา</div>
+      <div id="timer-value">60</div>
+      <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title">สีถัง</div>
+      <div id="bin-color-indicator">
+        <div id="bin-swatch"></div>
+        <div id="bin-color-name">—</div>
+        <div id="bin-color-countdown"></div>
+      </div>
+    </div>
+
+    <!-- Stats moved here -->
+    <div id="stats-bar">
+      <div class="stats-title">📊 ขยะที่เก็บได้</div>
+      <div id="stats-grid"></div>
+    </div>
+
   </div>
-  <script>function goHome(){window.location.href='../index.html';}</script>
+
+  <!-- Game area only -->
+  <div id="game-area">
+    <div id="ground-line"></div>
+    <div id="combo-badge">COMBO x<span id="combo-num">0</span></div>
+    <div id="bin-wrap">
+      <svg id="bin-svg" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">
+        <rect id="bin-lid" x="6" y="4" width="52" height="10" rx="5" fill="white"/>
+        <rect x="26" y="0" width="12" height="8" rx="4" fill="white" id="bin-handle"/>
+        <rect id="bin-body" x="8" y="16" width="48" height="58" rx="8" fill="white"/>
+        <rect x="20" y="22" width="5" height="46" rx="2" fill="rgba(0,0,0,.12)" id="stripe1"/>
+        <rect x="30" y="22" width="5" height="46" rx="2" fill="rgba(0,0,0,.12)" id="stripe2"/>
+        <rect x="40" y="22" width="5" height="46" rx="2" fill="rgba(0,0,0,.12)" id="stripe3"/>
+        <rect x="11" y="19" width="6" height="30" rx="3" fill="rgba(255,255,255,.35)"/>
+      </svg>
+    </div>
+    <div id="overlay">
+      <h1>♻️ เก็บ<br>ขยะ!</h1>
+      <div class="sub">ขยับถังซ้าย-ขวา<br>เพื่อรับขยะที่ตรงสี<br>⚠️ หลีกเลี่ยง 🔥💣 กับดัก!</div>
+      <button id="btn-start">▶ เริ่มเกม</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="./config/script.js"></script>
 </body>
 </html>

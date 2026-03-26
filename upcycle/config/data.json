@@ -1,0 +1,38 @@
+{
+  "colors": [
+    { "id": "yellow", "label": "เหลือง", "hex": "#FFD600", "shadowHex": "rgba(255,214,0,0.8)",  "scoreMatch": 15, "scoreMiss": -8  },
+    { "id": "green",  "label": "เขียว",  "hex": "#00E676", "shadowHex": "rgba(0,230,118,0.8)",  "scoreMatch": 20, "scoreMiss": -10 },
+    { "id": "blue",   "label": "ฟ้า",    "hex": "#29B6F6", "shadowHex": "rgba(41,182,246,0.8)", "scoreMatch": 10, "scoreMiss": -5  },
+    { "id": "red",    "label": "แดง",    "hex": "#FF1744", "shadowHex": "rgba(255,23,68,0.8)",  "scoreMatch": 25, "scoreMiss": -15 }
+  ],
+  "trashItems": [
+    { "emoji": "🍶", "label": "ขวด",      "colorId": "green"  },
+    { "emoji": "📰", "label": "กระดาษ",   "colorId": "yellow" },
+    { "emoji": "🥤", "label": "แก้วน้ำ",   "colorId": "blue"   },
+    { "emoji": "🔋", "label": "แบตเตอรี่",  "colorId": "red"    },
+    { "emoji": "🥛", "label": "กล่องนม",   "colorId": "blue"   },
+    { "emoji": "📦", "label": "กล่องกระดาษ","colorId": "yellow" },
+    { "emoji": "🍾", "label": "ขวดแก้ว",   "colorId": "green"  },
+    { "emoji": "💊", "label": "ยา",        "colorId": "red"    },
+    { "emoji": "🧴", "label": "ขวดพลาสติก","colorId": "blue"   },
+    { "emoji": "📋", "label": "เอกสาร",    "colorId": "yellow" },
+    { "emoji": "🧪", "label": "หลอดทดลอง", "colorId": "red"    },
+    { "emoji": "🫙", "label": "โหล",       "colorId": "green"  }
+  ],
+  "settings": {
+    "gameDuration": 60,
+    "binColorChangeSec": 15,
+    "chanceMatch": 0.50,
+    "chanceMiss":  0.40,
+    "chanceTrap":  0.10,
+    "maxOnScreen": 5,
+    "spawnCooldownMs": 220,
+    "fallSpeedStart": 1.6,
+    "fallSpeedEnd": 4.8,
+    "fallSpeedVariation": 0.28
+  },
+  "trapItems": [
+    { "emoji": "🔥", "label": "กับดักไฟ",   "type": "trap", "scoreTrap": -30 },
+    { "emoji": "💣", "label": "กับดักระเบิด", "type": "trap", "scoreTrap": -30 }
+  ]
+}

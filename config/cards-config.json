@@ -3,33 +3,33 @@
     {
       "id": "green",
       "name": "มิตร Green Thailand",
-      "thumbnail": "img/cover1.png"
+      "thumbnail": "images/cover1.png"
       
     },
     {
       "id": "fruits",
       "name": "Choice 2 Change:<br>Net Zero Green Land",
-      "thumbnail": "img/cover2.png"
+      "thumbnail": "images/cover2.png"
     },
     {
       "id": "water",
       "name": "Water Wise",
-      "thumbnail": "img/cover3.png"
+      "thumbnail": "images/cover3.png"
     },
     {
       "id": "watt",
       "name": "Watt Watcher",
-      "thumbnail": "img/cover4.png"
+      "thumbnail": "images/cover4.png"
     },
     {
       "id": "energy",
       "name": "Energy En-ner-joy",
-      "thumbnail": "img/cover5.png"
+      "thumbnail": "images/cover5.png"
     },
     {
       "id": "upcycle",
       "name": "Upcycle Evolution",
-      "thumbnail": "img/cover6.png"
+      "thumbnail": "images/cover6.png"
     }
   ]
 }
