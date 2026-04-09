@@ -1,7 +1,7 @@
 body {
 font-family: Arial, sans-serif;
-background: #0f172a;
-color: #fff;
+background: linear-gradient(135deg, #f8fffb 0%, #ebfff3 55%, #e0f7fa 100%);
+color: #1f3b2d;
 text-align: center;
 padding: 20px;
 }
@@ -12,7 +12,7 @@ margin-bottom: 10px;
 
 .status {
 margin-bottom: 10px;
-color: #94a3b8;
+color: #5f8f76;
 }
 
 table {
@@ -20,18 +20,20 @@ margin: auto;
 border-collapse: collapse;
 width: 95%;
 max-width: 900px;
-background: #1e293b;
+background: rgba(255,255,255,0.82);
 border-radius: 10px;
 overflow: hidden;
+border: 1px solid #b7e4c7;
+box-shadow: 0 12px 28px rgba(34,197,94,.08);
 }
 
 th, td {
 padding: 12px;
-border-bottom: 1px solid #334155;
+border-bottom: 1px solid rgba(31,59,45,0.12);
 }
 
 th {
-background: #334155;
+background: rgba(34,197,94,0.12);
 }
 
 .rank-1 { background: rgba(255,215,0,0.2); }

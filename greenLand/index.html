@@ -12,11 +12,9 @@
             margin: 0; 
             padding: 0;
             
-            /* กำหนดสีพื้นหลังหลัก (สีเขียวอ่อน) สำหรับส่วนที่ภาพไม่ครอบคลุม */
-            background-color: #e0f2f1; /* Pale Teal */
+            background-color: #f4fff8;
             
-            /* กำหนดขนาดและการจัดวางของภาพพื้นหลัง */
-            background-size: auto 100vh; /* ความสูงเต็ม 100% ของ Viewport Height (vh) */
+            background-size: auto 100vh;
             background-position: center;  
             background-repeat: no-repeat; 
             background-attachment: fixed;
@@ -25,7 +23,6 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            /* จัดวางคอนเทนเนอร์ให้ชิดขอบด้านล่าง */
             align-items: flex-end; 
         }
         
@@ -34,23 +31,23 @@
             width: 90%; 
             max-width: 700px;
             margin: 0 20px 20px 20px;
-            /* ลด Padding ลงเพื่อลดพื้นที่ว่างในกรอบข้อความ */
             padding: 15px 20px; 
             
-            background-color: rgba(255, 255, 255, 0.9); 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); 
+            background-color: rgba(255, 255, 255, 0.92); 
+            border-radius: 14px; 
+            box-shadow: 0 12px 28px rgba(34, 197, 94, 0.12); 
+            border: 1px solid #b7e4c7;
             text-align: left;
         }
 
         /* สไตล์สำหรับหัวข้อและคำถาม */
-        h1 { text-align: center; margin-top: 0; color: #333; font-size: 1.6em; }
+        h1 { text-align: center; margin-top: 0; color: #1f3b2d; font-size: 1.6em; }
         
         /* ขนาดตัวอักษรของคำถาม (1.2em) */
         #question { 
             font-size: 1.2em; 
             margin-bottom: 15px; 
-            color: #333; 
+            color: #1f3b2d; 
             text-align: center; 
             font-weight: bold; 
         }
@@ -59,7 +56,7 @@
             margin-top: 15px; 
             font-size: 1.1em; 
             font-weight: bold; 
-            color: #28a745; 
+            color: #15803d; 
             text-align: center;
         }
 
@@ -84,21 +81,21 @@
             padding: 10px; 
             margin: 0; 
             
-            /* *** ขนาดตัวอักษรคำตอบ 5% (0.9em * 1.05 = 0.945em) *** */
             font-size: 0.945em; 
 
-            background-color: #007bff; 
-            color: white; 
-            border: 3px solid #0056b3; 
-            border-radius: 8px; 
+            background: linear-gradient(135deg, #86efac, #7dd3fc); 
+            color: #134e2d; 
+            border: 2px solid #6ee7b7; 
+            border-radius: 10px; 
             cursor: pointer; 
             text-align: center;
             transition: background-color 0.3s, transform 0.1s; 
             word-break: break-word; 
+            font-weight: 700;
         }
         
         .option-button:hover { 
-            background-color: #0056b3; 
+            background: linear-gradient(135deg, #4ade80, #38bdf8); 
             transform: scale(1.02);
         }
 
@@ -107,14 +104,14 @@
             top: 12px;
             right: 14px;
             z-index: 1000;
-            border: none;
+            border: 1px solid #b7e4c7;
             border-radius: 999px;
-            background: #fff;
-            color: #2c3e50;
+            background: linear-gradient(135deg, #ffffff, #dcfce7);
+            color: #1f3b2d;
             font-size: 0.95rem;
             font-weight: 700;
             padding: 8px 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 16px rgba(34,197,94,0.12);
             cursor: pointer;
         }
 
