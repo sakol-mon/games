@@ -38,7 +38,8 @@ function initGame() {
   // Set up initial display
   const colorMapForInit = {};
   GAME_DATA.colors.forEach(c => { colorMapForInit[c.id] = c; });
-  setBinColor('blue', colorMapForInit);
+  const randomStartColor = GAME_DATA.colors[Math.floor(Math.random() * GAME_DATA.colors.length)];
+  setBinColor(randomStartColor.id, colorMapForInit);
   updateBinPos();
   window.colorMap = colorMapForInit; // Store for global use
   window.allStatsItems = allStatsItems; // Store for global use
@@ -83,6 +84,7 @@ const GROUND_Y = 610; // pixel from top where trash is "caught" (700 - 90)
 const MISS_Y   = 720;
 
 let binColorId = 'blue';
+let nextBinColorId = 'green';  // Color that will come next
 let binColorTimer = 0;
 let binColorChangeSec = 15;
 
@@ -94,6 +96,11 @@ let comboCount = 0;
 
 let lastTime = null;
 let binColorAccum = 0;
+
+let initialTrashSpawned = 0;    // count of trash spawned in initial phase
+let initialSpawnNextTime = 0;  // ms timestamp for next initial spawn
+let estimatedItemTravelTime = 6600; // ms for item to fall from -50 to GROUND_Y (estimated)
+let initialSpawnInterval = 0;  // will be set to estimatedItemTravelTime / 5
 
 let rafId = null;
 
@@ -108,6 +115,8 @@ const overlay    = document.getElementById('overlay');
 const btnStart   = document.getElementById('btn-start');
 const swatchEl   = document.getElementById('bin-swatch');
 const colorNameEl= document.getElementById('bin-color-name');
+const swatchNextEl = document.getElementById('bin-swatch-next');
+const colorNameNextEl = document.getElementById('bin-color-name-next');
 const comboBadge = document.getElementById('combo-badge');
 const comboNum   = document.getElementById('combo-num');
 const binSvg     = document.getElementById('bin-svg');
@@ -131,6 +140,21 @@ function setBinColor(colorId, colorMapToUse) {
   swatchEl.style.boxShadow = `0 0 14px ${c.shadowHex}`;
   colorNameEl.style.color = c.hex;
   colorNameEl.textContent = c.label;
+  
+  // Pick and display next color
+  const others = GAME_DATA.colors.filter(col => col.id !== colorId);
+  const nextCol = others[Math.floor(Math.random() * others.length)];
+  updateNextBinColor(nextCol.id, colorMap);
+}
+
+function updateNextBinColor(colorId, colorMapToUse) {
+  const colorMap = colorMapToUse || window.colorMap;
+  nextBinColorId = colorId;
+  const c = colorMap[colorId];
+  swatchNextEl.style.background = c.hex;
+  swatchNextEl.style.boxShadow = `0 0 8px ${c.shadowHex}`;
+  colorNameNextEl.style.color = c.hex;
+  colorNameNextEl.textContent = c.label;
 }
 
 // =============================================
@@ -321,11 +345,21 @@ function gameLoop(ts) {
   const tProgress = Math.min(elapsed / s.gameDuration, 1);
   baseFallSpeed = s.fallSpeedStart + tProgress * (s.fallSpeedEnd - s.fallSpeedStart);
 
-  // Count-based spawning: spawn 1 per cooldown tick, build up to maxOnScreen gradually
-  spawnCooldown -= dt;
-  if (trashList.length < s.maxOnScreen && spawnCooldown <= 0) {
-    spawnTrash();
-    spawnCooldown = s.spawnCooldownMs;
+  // Spawning: initial 5 items spaced evenly, then on-demand to maintain maxOnScreen
+  const currentGameTime = GAME_DATA.settings.gameDuration * 1000 - timeLeft * 1000; // ms since game start
+  
+  if (initialTrashSpawned < 5) {
+    // Initial phase: spawn 5 items evenly spaced
+    if (currentGameTime >= initialSpawnNextTime) {
+      spawnTrash();
+      initialTrashSpawned++;
+      initialSpawnNextTime = currentGameTime + initialSpawnInterval;
+    }
+  } else {
+    // On-demand phase: spawn when count drops below maxOnScreen
+    if (trashList.length < s.maxOnScreen) {
+      spawnTrash();
+    }
   }
 
   // Bin color change
@@ -335,9 +369,8 @@ function gameLoop(ts) {
   binCountdownEl.style.color = binSecsLeft <= 3 ? window.colorMap[binColorId].hex : 'var(--dim)';
   if (binColorAccum >= binColorChangeSec * 1000) {
     binColorAccum = 0;
-    const others = GAME_DATA.colors.filter(c => c.id !== binColorId);
-    const next = others[Math.floor(Math.random() * others.length)];
-    setBinColor(next.id);
+    const nextColor = nextBinColorId || 'blue';
+    setBinColor(nextColor);
   }
 
   // Update timer
@@ -427,6 +460,9 @@ function startGame() {
   trashList = [];
   baseFallSpeed = GAME_DATA.settings.fallSpeedStart;
   spawnCooldown = 0;
+  initialTrashSpawned = 0;  // Reset initial phase
+  initialSpawnNextTime = 0; // First item spawns immediately
+  initialSpawnInterval = estimatedItemTravelTime / 5; // Divide travel time into 5 equal intervals
   binColorAccum = 0;
   comboCount = 0;
   lastTime = null;
@@ -445,6 +481,7 @@ function startGame() {
   resetStats();
 
   overlay.style.display = 'none';
+  document.getElementById('upcycle-container').classList.remove('show');
   gameRunning = true;
   rafId = requestAnimationFrame(gameLoop);
 }
@@ -460,9 +497,62 @@ function endGame() {
     <div class="sub">คะแนนสุดท้าย</div>
     <div class="final-score">${score}</div>
     <div class="sub">${getScoreMessage(score)}</div>
-    <button id="btn-start" onclick="startGame()">▶ เล่นอีกครั้ง</button>
+    <div class="btn-action-group">
+      <button class="btn-action" onclick="startGame()">▶ เล่นอีกครั้ง</button>
+      <button class="btn-action" onclick="showUpcycleResult()">♻️ แลกขยะ</button>
+    </div>
   `;
   overlay.style.display = 'flex';
+}
+
+function showUpcycleResult() {
+  const upcycleContainer = document.getElementById('upcycle-container');
+  const upcycleDisplay = document.getElementById('upcycle-display');
+  
+  upcycleDisplay.innerHTML = '';
+  
+  // Get only trash items (not traps) that were caught
+  const trappedItems = GAME_DATA.trapItems.map(t => t.emoji);
+  const itemCounts = {};
+  
+  // Count all trash items caught (not traps)
+  for (const emoji in window.catchStats) {
+    const count = window.catchStats[emoji];
+    if (count > 0 && !trappedItems.includes(emoji)) {
+      itemCounts[emoji] = count;
+    }
+  }
+  
+  // Create display items grouped by type
+  let delayIndex = 0;
+  GAME_DATA.trashItems.forEach(item => {
+    const count = itemCounts[item.emoji] || 0;
+    if (count > 0) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'upcycle-item-group';
+      itemDiv.style.animationDelay = (delayIndex * 0.1) + 's';
+      itemDiv.innerHTML = `
+        <div class="upcycle-emoji">${item.emoji}</div>
+        <div class="upcycle-count">${count}</div>
+      `;
+      upcycleDisplay.appendChild(itemDiv);
+      delayIndex++;
+    }
+  });
+  
+  // Update overlay with game results and buttons
+  overlay.innerHTML = `
+    <h1>⏰ หมดเวลา!</h1>
+    <div class="sub">คะแนนสุดท้าย</div>
+    <div class="final-score">${score}</div>
+    <div class="sub">${getScoreMessage(score)}</div>
+    <div class="btn-action-group">
+      <button class="btn-action" onclick="startGame()">▶ เล่นอีกครั้ง</button>
+      <button class="btn-action" onclick="goHome()">🏠 กลับหน้าแรก</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  upcycleContainer.classList.add('show');
 }
 
 function getScoreMessage(s) {
