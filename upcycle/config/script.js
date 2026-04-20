@@ -544,8 +544,8 @@ function endGame() {
     <div class="final-score">${score}</div>
     <div class="sub">${getScoreMessage(score)}</div>
     <div class="btn-action-group">
-      <button class="btn-action" onclick="startGame()">▶ เล่นอีกครั้ง</button>
-      <button class="btn-action" onclick="showUpcycleResult()">♻️ แลกขยะ</button>
+      <button class="btn-action" onclick="startGame()">▶เล่นใหม่</button>
+      <button class="btn-action" onclick="showUpcycleResult()">♻️แลกขยะ</button>
     </div>
   `;
   overlay.style.display = 'flex';
@@ -602,8 +602,8 @@ function showUpcycleResult() {
     <div class="final-score">${score}</div>
     <div class="sub">${getScoreMessage(score)}</div>
     <div class="btn-action-group">
-      <button class="btn-action" onclick="startGame()">▶ เล่นอีกครั้ง</button>
-      <button class="btn-action" onclick="goHome()">🏠 กลับหน้าแรก</button>
+      <button class="btn-action" onclick="startGame()">▶เล่นใหม่</button>
+      <button class="btn-action" onclick="goHome()">🏠กลับแรก</button>
     </div>
   `;
   overlay.style.display = 'flex';
