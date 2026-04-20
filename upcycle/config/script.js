@@ -4,12 +4,33 @@ fetch('./config/data.json')
   .then(res => res.json())
   .then(data => {
     GAME_DATA = data;
+    console.log('Loaded GAME_DATA:', GAME_DATA.trashItems.map(item => ({ label: item.label, image: item.image })));
     initGame(); // Initialize game after data loads
   });
 
 // =============================================
 //  BUILD STATS GRID
 // =============================================
+function getItemImage(item, preventCache = false) {
+  const basePath = item.image || 'images/1.png';
+  if (preventCache) {
+    return basePath + '?v=' + Date.now();
+  }
+  return basePath;
+}
+
+function getItemKey(item) {
+  return item.emoji || item.label;
+}
+
+function getStatId(key) {
+  return 'stat-' + encodeURIComponent(key);
+}
+
+function getCountId(key) {
+  return 'cnt-' + encodeURIComponent(key);
+}
+
 function initGame() {
   const colorMap = {};
   GAME_DATA.colors.forEach(c => { colorMap[c.id] = c; });
@@ -20,18 +41,34 @@ function initGame() {
     ...GAME_DATA.trashItems.map(t => ({ ...t, isTrap: false })),
     ...GAME_DATA.trapItems.map(t => ({ ...t, isTrap: true }))
   ];
-  window.catchStats = {}; // emoji → count
+  window.catchStats = {}; // key → count
 
   allStatsItems.forEach(item => {
-    window.catchStats[item.emoji] = 0;
+    const key = getItemKey(item);
+    window.catchStats[key] = 0;
     const cell = document.createElement('div');
     cell.className = 'stat-cell' + (item.isTrap ? ' trap-cell' : '');
-    cell.id = 'stat-' + item.emoji.codePointAt(0).toString(16);
-    cell.innerHTML = `
-      <div class="stat-emoji">${item.emoji}</div>
-      <div class="stat-label">${item.label}</div>
-      <div class="stat-count" id="cnt-${item.emoji.codePointAt(0).toString(16)}">0</div>
-    `;
+    cell.id = getStatId(key);
+    if (item.isTrap) {
+      cell.innerHTML = `
+        <div class="stat-emoji">${item.emoji}</div>
+        <div class="stat-label">${item.label}</div>
+        <div class="stat-count" id="${getCountId(key)}">0</div>
+      `;
+    } else {
+      const img = document.createElement('img');
+      img.className = 'stat-image';
+      img.src = getItemImage(item);
+      img.alt = item.label;
+      cell.innerHTML = `
+        <div class="stat-image-wrap"></div>
+        <div class="stat-label">${item.label}</div>
+        <div class="stat-count" id="${getCountId(key)}">0</div>
+      `;
+      cell.querySelector('.stat-image-wrap').appendChild(img);
+      const c = colorMap[item.colorId];
+      cell.style.boxShadow = `inset -3px 0 6px ${c.shadowHex}`;
+    }
     statsGrid.appendChild(cell);
   });
 
@@ -45,13 +82,12 @@ function initGame() {
   window.allStatsItems = allStatsItems; // Store for global use
 }
 
-function updateStatCell(emoji) {
-  const key = emoji.codePointAt(0).toString(16);
-  const cnt = document.getElementById('cnt-' + key);
-  const cell = document.getElementById('stat-' + key);
+function updateStatCell(key) {
+  const cnt = document.getElementById(getCountId(key));
+  const cell = document.getElementById(getStatId(key));
   if (!cnt || !cell) return;
-  window.catchStats[emoji]++;
-  cnt.textContent = window.catchStats[emoji];
+  window.catchStats[key]++;
+  cnt.textContent = window.catchStats[key];
   cell.classList.add('has-catch');
   // bump animation
   cnt.classList.remove('stat-bump');
@@ -62,9 +98,9 @@ function updateStatCell(emoji) {
 function resetStats() {
   Object.keys(window.catchStats).forEach(k => { window.catchStats[k] = 0; });
   window.allStatsItems.forEach(item => {
-    const key = item.emoji.codePointAt(0).toString(16);
-    const cnt = document.getElementById('cnt-' + key);
-    const cell = document.getElementById('stat-' + key);
+    const key = getItemKey(item);
+    const cnt = document.getElementById(getCountId(key));
+    const cell = document.getElementById(getStatId(key));
     if (cnt) cnt.textContent = '0';
     if (cell) cell.classList.remove('has-catch');
   });
@@ -216,8 +252,8 @@ function spawnTrash() {
   const id = trashIdCounter++;
 
   // Trap: orange/red glow; normal trash: their color
-  const hexColor  = isTrap ? '#FF6D00' : window.colorMap[item.colorId].hex;
-  const shadowHex = isTrap ? 'rgba(255,109,0,0.9)' : window.colorMap[item.colorId].shadowHex;
+  const hexColor  = isTrap ? '#FF6D00' : 'rgba(0,0,0,0.7)';
+  const shadowHex = 'rgba(0,0,0,0.3)'; // Light gray shadow for all trash
 
   // Individual speed: baseFallSpeed ± fallSpeedVariation
   const v = GAME_DATA.settings.fallSpeedVariation;
@@ -226,12 +262,18 @@ function spawnTrash() {
   const el = document.createElement('div');
   el.className = 'trash' + (isTrap ? ' trap-item' : '');
   el.id = 'trash-' + id;
-  el.textContent = item.emoji;
+  if (isTrap) {
+    el.textContent = item.emoji;
+  } else {
+    const imgSrc = getItemImage(item);
+    console.log('Spawning trash:', item.label, 'with image:', imgSrc);
+    el.innerHTML = `<img class="trash-img" src="${imgSrc}" alt="${item.label}" />`;
+  }
   el.style.left = x + 'px';
   el.style.top = '-50px';
   el.style.color = hexColor;
-  el.style.background = hexColor + '22';
-  el.style.border = `2px solid ${hexColor}`;
+  el.style.background = 'rgba(0,0,0,0.1)';
+  el.style.border = '2px solid rgba(0,0,0,0.2)';
   el.style.boxShadow = `0 0 12px ${shadowHex}`;
   if (isTrap) {
     el.style.animation = 'wobble 0.5s ease-in-out infinite alternate';
@@ -239,7 +281,7 @@ function spawnTrash() {
   gameArea.appendChild(el);
 
   trashList.push({ id, el, x, y: -50, colorId: isTrap ? null : item.colorId,
-                   isTrap, emoji: item.emoji, speed });
+                   isTrap, statKey: getItemKey(item), emoji: item.emoji || null, speed });
 }
 
 function removeTrash(id) {
@@ -392,14 +434,17 @@ function gameLoop(ts) {
     t.y += t.speed * dt / 16;
     t.el.style.top = t.y + 'px';
 
-    // Check catch
+    // Check catch - only lid area
     if (t.y + TRASH_W >= GROUND_Y) {
-      const trashCenter = t.x + TRASH_W / 2;
-      const binLeft  = binX - BIN_W / 2 - 8;
-      const binRight = binX + BIN_W / 2 + 8;
+      const trashLeft = t.x;
+      const trashRight = t.x + TRASH_W;
+      // Lid area: width matching bin lid
+      const lidLeft  = binX - BIN_W / 2;
+      const lidRight = binX + BIN_W / 2;
+      const lidTop = GROUND_Y - 25; // Lid height range (25px from ground)
 
-      if (trashCenter >= binLeft && trashCenter <= binRight) {
-        // Caught!
+      if (trashRight >= lidLeft && trashLeft <= lidRight && t.y <= lidTop) {
+        // Caught on lid!
         let pts;
         if (t.isTrap) {
           // Trap caught — always penalty
@@ -427,10 +472,10 @@ function gameLoop(ts) {
         if (score < 0) score = 0;
         scoreEl.textContent = score;
         showScoreDelta(pts, t.x, t.y);
-        updateStatCell(t.emoji);
+        updateStatCell(t.statKey);
         removeTrash(t.id);
       } else if (t.y > MISS_Y) {
-        // Fell off
+        // Fell off completely
         comboCount = 0;
         updateCombo();
         removeTrash(t.id);
@@ -492,6 +537,7 @@ function endGame() {
   trashList.forEach(t => t.el.remove());
   trashList = [];
 
+  overlay.classList.remove('upcycle-mode');
   overlay.innerHTML = `
     <h1>⏰ หมดเวลา!</h1>
     <div class="sub">คะแนนสุดท้าย</div>
@@ -512,35 +558,44 @@ function showUpcycleResult() {
   upcycleDisplay.innerHTML = '';
   
   // Get only trash items (not traps) that were caught
-  const trappedItems = GAME_DATA.trapItems.map(t => t.emoji);
+  const trappedKeys = new Set(GAME_DATA.trapItems.map(getItemKey));
   const itemCounts = {};
   
   // Count all trash items caught (not traps)
-  for (const emoji in window.catchStats) {
-    const count = window.catchStats[emoji];
-    if (count > 0 && !trappedItems.includes(emoji)) {
-      itemCounts[emoji] = count;
+  for (const key in window.catchStats) {
+    const count = window.catchStats[key];
+    if (count > 0 && !trappedKeys.has(key)) {
+      itemCounts[key] = count;
     }
   }
   
   // Create display items grouped by type
   let delayIndex = 0;
   GAME_DATA.trashItems.forEach(item => {
-    const count = itemCounts[item.emoji] || 0;
+    const key = getItemKey(item);
+    const count = itemCounts[key] || 0;
     if (count > 0) {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'upcycle-item-group';
       itemDiv.style.animationDelay = (delayIndex * 0.1) + 's';
+      const img = document.createElement('img');
+      img.className = 'upcycle-image';
+      img.src = getItemImage(item);
+      img.alt = item.label;
       itemDiv.innerHTML = `
-        <div class="upcycle-emoji">${item.emoji}</div>
+        <div class="upcycle-image-wrap"></div>
         <div class="upcycle-count">${count}</div>
       `;
+      itemDiv.querySelector('.upcycle-image-wrap').appendChild(img);
+      const c = window.colorMap[item.colorId];
+      itemDiv.style.boxShadow = `inset -3px 0 6px ${c.shadowHex}`;
       upcycleDisplay.appendChild(itemDiv);
       delayIndex++;
     }
   });
   
   // Update overlay with game results and buttons
+  overlay.classList.add('upcycle-mode');
   overlay.innerHTML = `
     <h1>⏰ หมดเวลา!</h1>
     <div class="sub">คะแนนสุดท้าย</div>

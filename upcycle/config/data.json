@@ -6,18 +6,18 @@
     { "id": "red",    "label": "แดง",    "hex": "#FF1744", "shadowHex": "rgba(255,23,68,0.8)",  "scoreMatch": 25, "scoreMiss": -15 }
   ],
   "trashItems": [
-    { "emoji": "🍶", "label": "ขวด",      "colorId": "green"  },
-    { "emoji": "📰", "label": "กระดาษ",   "colorId": "yellow" },
-    { "emoji": "🥤", "label": "แก้วน้ำ",   "colorId": "blue"   },
-    { "emoji": "🔋", "label": "แบตเตอรี่",  "colorId": "red"    },
-    { "emoji": "🥛", "label": "กล่องนม",   "colorId": "blue"   },
-    { "emoji": "📦", "label": "กล่องกระดาษ","colorId": "yellow" },
-    { "emoji": "🍾", "label": "ขวดแก้ว",   "colorId": "green"  },
-    { "emoji": "💊", "label": "ยา",        "colorId": "red"    },
-    { "emoji": "🧴", "label": "ขวดพลาสติก","colorId": "blue"   },
-    { "emoji": "📋", "label": "เอกสาร",    "colorId": "yellow" },
-    { "emoji": "🧪", "label": "หลอดทดลอง", "colorId": "red"    },
-    { "emoji": "🫙", "label": "โหล",       "colorId": "green"  }
+    { "image": "images/1.png", "label": "ขวดน้ำ",      "colorId": "yellow"  },
+    { "image": "images/2.png", "label": "กระป๋อง",   "colorId": "yellow" },
+    { "image": "images/3.png", "label": "กระดาษลัง",   "colorId": "yellow"   },
+    { "image": "images/4.png", "label": "ขวดแก้ว",  "colorId": "yellow"    },
+    { "image": "images/5.png", "label": "เปลือกผลไม้",   "colorId": "green"   },
+    { "image": "images/6.png", "label": "เศษอาหาร","colorId": "green" },
+    { "image": "images/7.png", "label": "โฟม",   "colorId": "blue"  },
+    { "image": "images/8.png", "label": "ซองขนม",        "colorId": "blue"    },
+    { "image": "images/9.png", "label": "แบตเตอรี่","colorId": "red"   },
+    { "image": "images/10.png", "label": "หลอดไฟ",    "colorId": "red" },
+    { "image": "images/11.png", "label": "กระป๋องสี", "colorId": "red"    },
+    { "image": "images/12.png", "label": "ยา",       "colorId": "green"  }
   ],
   "settings": {
     "gameDuration": 60,
