@@ -373,9 +373,16 @@
   }
 
   #overlay.upcycle-mode {
+    position: relative;
     justify-content: flex-start;
-    padding-top: 30px;
-    gap: 10px;
+    padding-top: 20px;
+    padding-bottom: 0;
+    gap: 8px;
+  }
+
+  #overlay.upcycle-mode .btn-action-group {
+    margin-top: auto;
+    margin-bottom: 28px;
   }
 
   #overlay h1 {
@@ -462,9 +469,19 @@
     align-items: center;
     justify-content: flex-end;
     z-index: 150;
-    padding: 8px 6px 6px 6px;
+    padding: 0 6px 6px 6px;
     border-top: 1px solid var(--border);
     border-radius: 0 0 16px 16px;
+    max-height: 58%;
+    overflow-y: auto;
+  }
+
+  #upcycle-middle {
+    width: 100%;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   #upcycle-container.show { display: flex; }
@@ -478,126 +495,141 @@
     margin-bottom: 4px;
   }
 
-  #upcycle-display {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+  .btn-craft-main {
     width: 100%;
-    padding: 0 2px;
-    justify-items: center;
+    font-size: 11.2px;
+    padding: 6px 6px;
+    letter-spacing: 0.2px;
+    margin: 0;
+    text-align: center;
+    display: flex;
     align-items: center;
+    justify-content: center;
   }
 
-  .upcycle-item-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255,255,255,.85);
+  .btn-craft-main:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(34,197,94,.18);
+  }
+
+  .btn-craft-main:active {
+    transform: translateY(0);
+  }
+
+  #craft-section {
+    width: 100%;
+    background: rgba(255,255,255,.72);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 4px;
-    animation: pop-in .5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    width: 100%;
-    justify-content: center;
+    border-radius: 8px;
+    padding: 8px 6px;
+    display: none;
   }
 
-  .upcycle-image-wrap {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  #craft-section.show {
+    display: block;
   }
 
-  .upcycle-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  @keyframes pop-in {
-    from {
-      opacity: 0;
-      transform: scale(0) rotateY(90deg);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) rotateY(0);
-    }
-  }
-
-  .upcycle-item-group:nth-child(1) { animation-delay: 0.1s; }
-  .upcycle-item-group:nth-child(2) { animation-delay: 0.2s; }
-  .upcycle-item-group:nth-child(3) { animation-delay: 0.3s; }
-  .upcycle-item-group:nth-child(4) { animation-delay: 0.4s; }
-  .upcycle-item-group:nth-child(5) { animation-delay: 0.5s; }
-  .upcycle-item-group:nth-child(6) { animation-delay: 0.6s; }
-  .upcycle-item-group:nth-child(7) { animation-delay: 0.7s; }
-  .upcycle-item-group:nth-child(8) { animation-delay: 0.8s; }
-  .upcycle-item-group:nth-child(9) { animation-delay: 0.9s; }
-  .upcycle-item-group:nth-child(10) { animation-delay: 1s; }
-  .upcycle-item-group:nth-child(11) { animation-delay: 1.1s; }
-  .upcycle-item-group:nth-child(12) { animation-delay: 1.2s; }
-
-  .upcycle-emoji {
-    font-size: 20px;
-    line-height: 1;
-  }
-
-  .upcycle-count {
+  .craft-rate {
     font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-size: 10px;
     font-weight: 700;
-    color: #1f3b2d;
-    text-shadow: 0 1px 0 rgba(255,255,255,.55);
-    letter-spacing: 0.5px;
+    text-align: center;
+    color: #2f6e4f;
+    margin-bottom: 6px;
   }
+
+  #craft-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .craft-btn {
+    border: 1px solid #9fd5b1;
+    border-radius: 8px;
+    padding: 6px 5px;
+    background: linear-gradient(135deg, #ffffff, #e8fff1);
+    color: #1d4e36;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 60px;
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .craft-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(34,197,94,.16);
+  }
+
+  .craft-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .craft-name {
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .craft-need,
+  .craft-reward {
+    font-size: 8px;
+    line-height: 1.2;
+  }
+
+  .craft-reward {
+    color: #117a42;
+    font-weight: 700;
+  }
+
+  .craft-result {
+    min-height: 18px;
+    margin-top: 7px;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .craft-result.success { color: #0f9d58; }
+  .craft-result.fail { color: #d63031; }
+
+  #craft-status-top {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 6px;
+    min-height: 20px;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: #2f6e4f;
+    pointer-events: none;
+  }
+
+  #craft-status-top.success { color: #0f9d58; }
+  #craft-status-top.fail { color: #d63031; }
 
   /* Responsive */
   @media (max-width: 600px) {
-    #upcycle-display {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-    }
-
-    .upcycle-emoji {
-      font-size: 18px;
-    }
-
-    .upcycle-count {
-      font-size: 9px;
+    #craft-buttons {
+      grid-template-columns: 1fr;
     }
   }
 
   @media (max-width: 400px) {
-    #upcycle-display {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 3px;
-      padding: 0 1px;
-    }
-
-    .upcycle-item-group {
-      padding: 4px 3px;
-      gap: 1px;
-      border-radius: 4px;
-    }
-
-    .upcycle-emoji {
-      font-size: 16px;
-    }
-
-    .upcycle-count {
-      font-size: 8px;
-    }
-
-    #upcycle-title {
-      font-size: 6px;
-      margin-bottom: 2px;
-    }
-
     #upcycle-container {
       padding: 4px 2px 2px 2px;
+    }
+
+    .craft-btn {
+      min-height: 56px;
     }
   }
 
@@ -799,8 +831,10 @@
     </div>
 
     <div id="upcycle-container">
-      <div id="upcycle-title">♻️ ขยะที่เก็บได้</div>
-      <div id="upcycle-display"></div>
+      <div id="upcycle-middle">
+        <button id="btn-open-craft" class="btn-action btn-craft-main" onclick="toggleCraftMenu()">♻️แลกขยะ</button>
+        <div id="craft-section"></div>
+      </div>
     </div>
   </div>
 

@@ -1,11 +1,26 @@
 // Load game data
 let GAME_DATA = {};
-fetch('./config/data.json')
-  .then(res => res.json())
-  .then(data => {
-    GAME_DATA = data;
+let CRAFT_DATA = {
+  successRate: 0.25,
+  failRate: 0.75,
+  recipes: []
+};
+
+window.upcycleInventory = {};
+
+Promise.all([
+  fetch('./config/data.json').then(res => res.json()),
+  fetch('./config/craft.json').then(res => res.json())
+])
+  .then(([gameData, craftData]) => {
+    GAME_DATA = gameData;
+    CRAFT_DATA = craftData;
     console.log('Loaded GAME_DATA:', GAME_DATA.trashItems.map(item => ({ label: item.label, image: item.image })));
     initGame(); // Initialize game after data loads
+  })
+  .catch(err => {
+    console.error('Failed to load game configuration:', err);
+    initGame();
   });
 
 // =============================================
@@ -104,6 +119,185 @@ function resetStats() {
     if (cnt) cnt.textContent = '0';
     if (cell) cell.classList.remove('has-catch');
   });
+}
+
+function buildUpcycleInventory() {
+  const trappedKeys = new Set(GAME_DATA.trapItems.map(getItemKey));
+  const itemCounts = {};
+
+  for (const key in window.catchStats) {
+    const count = window.catchStats[key];
+    if (count > 0 && !trappedKeys.has(key)) {
+      itemCounts[key] = count;
+    }
+  }
+
+  return itemCounts;
+}
+
+function renderUpcycleInventory(itemCounts) {
+  const upcycleDisplay = document.getElementById('upcycle-display');
+  if (!upcycleDisplay) return;
+
+  upcycleDisplay.innerHTML = '';
+
+  let delayIndex = 0;
+  GAME_DATA.trashItems.forEach(item => {
+    const key = getItemKey(item);
+    const count = itemCounts[key] || 0;
+    if (count > 0) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'upcycle-item-group';
+      itemDiv.style.animationDelay = (delayIndex * 0.1) + 's';
+      const img = document.createElement('img');
+      img.className = 'upcycle-image';
+      img.src = getItemImage(item);
+      img.alt = item.label;
+      itemDiv.innerHTML = `
+        <div class="upcycle-image-wrap"></div>
+        <div class="upcycle-count">${count}</div>
+      `;
+      itemDiv.querySelector('.upcycle-image-wrap').appendChild(img);
+      const c = window.colorMap[item.colorId];
+      itemDiv.style.boxShadow = `inset -3px 0 6px ${c.shadowHex}`;
+      upcycleDisplay.appendChild(itemDiv);
+      delayIndex++;
+    }
+  });
+}
+
+function refreshFinalScoreDisplay() {
+  scoreEl.textContent = score;
+  const finalScoreEl = document.getElementById('final-score-value');
+  if (finalScoreEl) finalScoreEl.textContent = score;
+}
+
+function showCraftResult(message, type) {
+  const resultEl = document.getElementById('craft-status-top');
+  if (resultEl) {
+    resultEl.textContent = message;
+    resultEl.className = type ? type : '';
+    resultEl.id = 'craft-status-top';
+    return;
+  }
+
+  // Fallback in case top zone is not rendered yet
+  const legacyResultEl = document.getElementById('craft-result');
+  if (!legacyResultEl) return;
+  legacyResultEl.textContent = message;
+  legacyResultEl.className = `craft-result ${type}`;
+}
+
+function canCraftRecipe(recipe) {
+  const requiredItems = Object.keys(recipe.require || {});
+  return requiredItems.every(itemLabel => {
+    const required = recipe.require[itemLabel] || 0;
+    const available = window.upcycleInventory[itemLabel] || 0;
+    return available >= required;
+  });
+}
+
+function consumeRecipeItems(recipe) {
+  const requiredItems = Object.keys(recipe.require || {});
+  requiredItems.forEach(itemLabel => {
+    const required = recipe.require[itemLabel] || 0;
+    window.upcycleInventory[itemLabel] = Math.max(0, (window.upcycleInventory[itemLabel] || 0) - required);
+
+    // Keep left stats panel in sync with crafting material usage
+    if (window.catchStats && Object.prototype.hasOwnProperty.call(window.catchStats, itemLabel)) {
+      window.catchStats[itemLabel] = Math.max(0, (window.catchStats[itemLabel] || 0) - required);
+      const countEl = document.getElementById(getCountId(itemLabel));
+      const cellEl = document.getElementById(getStatId(itemLabel));
+      if (countEl) countEl.textContent = window.catchStats[itemLabel];
+      if (cellEl && window.catchStats[itemLabel] === 0) {
+        cellEl.classList.remove('has-catch');
+      }
+    }
+  });
+}
+
+function getRecipeRequireText(recipe) {
+  const requiredItems = Object.keys(recipe.require || {});
+  return requiredItems.map(itemLabel => `${itemLabel} ${recipe.require[itemLabel]} ชิ้น`).join(' + ');
+}
+
+function renderCraftMenu() {
+  const craftButtonsEl = document.getElementById('craft-buttons');
+  if (!craftButtonsEl) return;
+
+  craftButtonsEl.innerHTML = '';
+  CRAFT_DATA.recipes.forEach(recipe => {
+    const btn = document.createElement('button');
+    btn.className = 'craft-btn';
+    btn.disabled = !canCraftRecipe(recipe);
+    btn.innerHTML = `
+      <span class="craft-name">${recipe.name}</span>
+      <span class="craft-need">ใช้ ${getRecipeRequireText(recipe)}</span>
+    `;
+    btn.addEventListener('click', () => attemptCraft(recipe.id));
+    craftButtonsEl.appendChild(btn);
+  });
+}
+
+function buildCraftSectionContent() {
+  return `
+    <div id="craft-buttons"></div>
+  `;
+}
+
+function syncUpcycleOverlayBounds() {
+  const upcycleContainer = document.getElementById('upcycle-container');
+  if (!overlay || !upcycleContainer) return;
+
+  if (overlay.classList.contains('upcycle-mode') && upcycleContainer.classList.contains('show')) {
+    overlay.style.bottom = `${upcycleContainer.offsetHeight}px`;
+  } else {
+    overlay.style.bottom = '0';
+  }
+}
+
+function toggleCraftMenu() {
+  const craftSection = document.getElementById('craft-section');
+  const openCraftBtn = document.getElementById('btn-open-craft');
+  if (!craftSection || !openCraftBtn) return;
+
+  const isOpen = craftSection.classList.toggle('show');
+  if (isOpen) {
+    craftSection.innerHTML = buildCraftSectionContent();
+    openCraftBtn.textContent = '✖ ปิดเมนูแลกขยะ';
+    renderCraftMenu();
+    showCraftResult('เลือกรายการที่ต้องการผลิต', '');
+  } else {
+    craftSection.innerHTML = '';
+    openCraftBtn.textContent = '♻️แลกขยะ';
+  }
+
+  syncUpcycleOverlayBounds();
+}
+
+function attemptCraft(recipeId) {
+  const recipe = CRAFT_DATA.recipes.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  if (!canCraftRecipe(recipe)) {
+    showCraftResult(`วัตถุดิบไม่พอสำหรับ ${recipe.name}`, 'fail');
+    renderCraftMenu();
+    return;
+  }
+
+  consumeRecipeItems(recipe);
+  const success = Math.random() < (CRAFT_DATA.successRate || 0.25);
+
+  if (success) {
+    score += recipe.successScore;
+    refreshFinalScoreDisplay();
+    showCraftResult(`✅ ผลิต ${recipe.name} สำเร็จ! +${recipe.successScore} คะแนน`, 'success');
+  } else {
+    showCraftResult(`❌ ผลิต ${recipe.name} ไม่สำเร็จ (ใช้วัตถุดิบไปแล้ว)`, 'fail');
+  }
+
+  renderUpcycleInventory(window.upcycleInventory);
+  renderCraftMenu();
 }
 
 // =============================================
@@ -527,6 +721,8 @@ function startGame() {
 
   overlay.style.display = 'none';
   document.getElementById('upcycle-container').classList.remove('show');
+  syncUpcycleOverlayBounds();
+  window.upcycleInventory = {};
   gameRunning = true;
   rafId = requestAnimationFrame(gameLoop);
 }
@@ -549,58 +745,21 @@ function endGame() {
     </div>
   `;
   overlay.style.display = 'flex';
+  syncUpcycleOverlayBounds();
 }
 
 function showUpcycleResult() {
   const upcycleContainer = document.getElementById('upcycle-container');
-  const upcycleDisplay = document.getElementById('upcycle-display');
-  
-  upcycleDisplay.innerHTML = '';
-  
-  // Get only trash items (not traps) that were caught
-  const trappedKeys = new Set(GAME_DATA.trapItems.map(getItemKey));
-  const itemCounts = {};
-  
-  // Count all trash items caught (not traps)
-  for (const key in window.catchStats) {
-    const count = window.catchStats[key];
-    if (count > 0 && !trappedKeys.has(key)) {
-      itemCounts[key] = count;
-    }
-  }
-  
-  // Create display items grouped by type
-  let delayIndex = 0;
-  GAME_DATA.trashItems.forEach(item => {
-    const key = getItemKey(item);
-    const count = itemCounts[key] || 0;
-    if (count > 0) {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'upcycle-item-group';
-      itemDiv.style.animationDelay = (delayIndex * 0.1) + 's';
-      const img = document.createElement('img');
-      img.className = 'upcycle-image';
-      img.src = getItemImage(item);
-      img.alt = item.label;
-      itemDiv.innerHTML = `
-        <div class="upcycle-image-wrap"></div>
-        <div class="upcycle-count">${count}</div>
-      `;
-      itemDiv.querySelector('.upcycle-image-wrap').appendChild(img);
-      const c = window.colorMap[item.colorId];
-      itemDiv.style.boxShadow = `inset -3px 0 6px ${c.shadowHex}`;
-      upcycleDisplay.appendChild(itemDiv);
-      delayIndex++;
-    }
-  });
+  const craftSection = document.getElementById('craft-section');
+  const openCraftBtn = document.getElementById('btn-open-craft');
+  window.upcycleInventory = buildUpcycleInventory();
+  renderUpcycleInventory(window.upcycleInventory);
   
   // Update overlay with game results and buttons
   overlay.classList.add('upcycle-mode');
   overlay.innerHTML = `
-    <h1>⏰ หมดเวลา!</h1>
-    <div class="sub">คะแนนสุดท้าย</div>
-    <div class="final-score">${score}</div>
-    <div class="sub">${getScoreMessage(score)}</div>
+    <div class="final-score" id="final-score-value">${score}</div>
+    <div id="craft-status-top"></div>
     <div class="btn-action-group">
       <button class="btn-action" onclick="startGame()">▶เล่นใหม่</button>
       <button class="btn-action" onclick="goHome()">🏠กลับแรก</button>
@@ -608,6 +767,18 @@ function showUpcycleResult() {
   `;
   overlay.style.display = 'flex';
   upcycleContainer.classList.add('show');
+
+  if (craftSection) {
+    craftSection.classList.add('show');
+    craftSection.innerHTML = buildCraftSectionContent();
+    renderCraftMenu();
+    showCraftResult('เลือกรายการที่ต้องการผลิต', '');
+  }
+  if (openCraftBtn) {
+    openCraftBtn.textContent = '✖ ปิดเมนูแลกขยะ';
+  }
+
+  syncUpcycleOverlayBounds();
 }
 
 function getScoreMessage(s) {
@@ -622,3 +793,6 @@ btnStart.addEventListener('click', startGame);
 function goHome() {
   window.location.href = '../index.html';
 }
+
+window.attemptCraft = attemptCraft;
+window.toggleCraftMenu = toggleCraftMenu;

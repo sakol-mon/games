@@ -1,0 +1,70 @@
+{
+  "successRate": 0.25,
+  "failRate": 0.75,
+  "recipes": [
+    {
+      "id": "eco-tshirt",
+      "name": "เสื้อยืดรักษ์โลก",
+      "require": {
+        "ขวดน้ำ": 2
+      },
+      "successScore": 1000
+    },
+    {
+      "id": "royal-prosthetic-leg",
+      "name": "ขาเทียมพระราชทาน",
+      "require": {
+        "กระป๋อง": 3
+      },
+      "successScore": 1500
+    },
+    {
+      "id": "plant-pot",
+      "name": "กระถางต้นไม้",
+      "require": {
+        "กระดาษลัง": 1
+      },
+      "successScore": 400
+    },
+    {
+      "id": "glass-bottle-lamp",
+      "name": "โคมไฟขวดแก้ว",
+      "require": {
+        "ขวดแก้ว": 1
+      },
+      "successScore": 700
+    },
+    {
+      "id": "bio-liquid",
+      "name": "น้ำยาชีวะภาพ",
+      "require": {
+        "เปลือกผลไม้": 1
+      },
+      "successScore": 300
+    },
+    {
+      "id": "large-compost-bag",
+      "name": "ปุ๋ยหมักถุงใหญ่",
+      "require": {
+        "เศษอาหาร": 3
+      },
+      "successScore": 800
+    },
+    {
+      "id": "pot-support-material",
+      "name": "วัสดุรองกระถาง",
+      "require": {
+        "โฟม": 1
+      },
+      "successScore": 300
+    },
+    {
+      "id": "woven-bag",
+      "name": "กระเป๋าสาน",
+      "require": {
+        "ซองขนม": 2
+      },
+      "successScore": 900
+    }
+  ]
+}
