@@ -1,8 +1,8 @@
 // config for Supabase client and helper functions for database operations
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const SUPABASE_URL = 'https://wcosbonzozrdzwgdrbgi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjb3Nib256b3pyZHp3Z2RyYmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTIzODUsImV4cCI6MjA4OTgyODM4NX0.JJe2mOYlAR1SFElqqpr6SAgbd-coQJI46xym7LT4mQY';
+const SUPABASE_URL = 'https://vfrgcvgxcxfoghlxxxve.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmcmdjdmd4Y3hmb2dobHh4eHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2OTQxMjAsImV4cCI6MjEwMzI3MDEyMH0.dthJyeGfiBdsy0DT3VLBC275C9fRj1v2LbHR2_GoeJI';
 
 // client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
